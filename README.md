@@ -33,14 +33,26 @@ pytest
 
 ### 3. Első szimuláció futtatása
 
-```python
-from wsnsim.sim import Simulation
-from wsnsim.scenarios import load_scenario
+```bash
+python experiments/hello_sim.py
+```
 
-scenario = load_scenario("examples/grid_10x10.yaml")
-sim = Simulation(scenario)
-sim.run()
-sim.metrics.report()
+Vagy közvetlenül Pythonból:
+
+```python
+import numpy as np
+from wsnsim.sim import SimClock, Scheduler
+from wsnsim.metrics import StatsCollector
+
+clock = SimClock()
+stats = StatsCollector(clock)
+sched = Scheduler(clock, rng=np.random.default_rng(42))
+
+sched.schedule(100.0, lambda e: stats.record("tx", value=32.0), payload="ping")
+sched.schedule(200.0, lambda e: stats.record("rx", value=32.0), payload="pong")
+sched.run()
+
+print(stats.table_str())
 ```
 
 ---

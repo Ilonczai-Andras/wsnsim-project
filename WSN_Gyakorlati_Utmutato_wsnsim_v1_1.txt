@@ -1,0 +1,1465 @@
+Vezeték nélküli szenzorhálózatok (WSN)
+
+             Gyakorlati útmutató és szilabusz
+
+ Build-as-you-go: Python-alapú diszkrét eseményű szimulátor (wsnsim)
+
+
+                              Verzió: v1.0
+                      Kiadás dátuma: 2026-02-24
+
+1. Dokumentum célja és gyors navigáció
+Ez a dokumentum a tárgy gyakorlati részének (szimulátorépítés + kísérletezés + dokumentálás) teljes,
+önállóan követhető útmutatója. A cél, hogy egyetlen helyen megtaláld:
+
+
+•   mit kell elkészítened hétről hétre (feladatok, mérföldkövek);
+•   hogyan érdemes MI-eszközöket használnod mérnöki módon (nem csak „vibe coding”);
+•   hogyan dokumentálj (README, promptlog, kísérleti riportok);
+•   hogyan add le és hogyan lesz értékelve a gyakorlati munka;
+•   milyen külső forrásokat érdemes olvasnod a WSN és az MI-használat megértéséhez.
+
+A dokumentum „build-as-you-go” logikát követ: a heti témák mindig egy-egy új szimulátor-modult és egy
+mérhető kísérletet adnak hozzá. Minden héten a cél az, hogy legyen egy kis, de lezárt, tesztelt és
+dokumentált előrelépés.
+
+Ahol képletek, protokollok vagy elméleti állítások szerepelnek, ott hivatkozunk külső, megbízható
+forrásokra (RFC-k, specifikációk, könyvek, alapcikkek). A hivatkozásokat a szövegben [szám] jelöli, a teljes
+bibliográfia a dokumentum végén található.
+
+
+2. A kurzus röviden
+A tárgy célja, hogy tervezői szinten megismerd a vezeték nélküli szenzorhálózatok (Wireless Sensor
+Networks - WSN) működési elveit, protokolljait és a tipikus tervezési trade-offokat (energia vs
+megbízhatóság, késleltetés vs throughput, komplexitás vs skálázás, stb.). A kurzus központi eleme egy
+saját, Python-alapú diszkrét eseményű szimulátor (wsnsim) felépítése, amelyben a tanult modelleket és
+protokollokat implementálod, majd kísérletekkel validálod.
+
+A félév végére képes leszel WSN-rendszereket mérnöki szemlélettel értékelni és tervezni: nem csak
+„működik/nem működik” szinten, hanem mérőszámok, költségek (energia, kommunikáció),
+bizonytalanságok és kockázatok alapján.
+
+2.1. Mit építesz: wsnsim
+A wsnsim egy moduláris diszkrét eseményű szimulátor, amelyben a hálózatot csomópontok, csomagok
+és események írják le. A moduláris felépítés célja, hogy a különböző csatorna-, energia-, MAC-, routing-
+és egyéb modellek „cserélhető” komponensek legyenek.
+
+2.2. Megszerzendő kompetenciák
+•   WSN rendszerarchitektúra tervezése erőforrás-korlátok mellett.
+•   Rádiós csatorna és energiafogyasztás modellezése, validálása.
+•   MAC és routing protokollok trade-off alapú értékelése.
+•   Diszkrét eseményű szimulátor építése és reprodukálható kísérlettervezés.
+•   Biztonsági fenyegetések azonosítása WSN környezetben.
+•   Edge AI és Federated Learning alapok alkalmazása WSN-szcenáriókban.
+•   Pareto-elemzés és design space exploration multi-objektív döntésekhez.
+2.3. Előfeltételek és ajánlott háttértudás
+Ajánlott, hogy magabiztosan menjen:
+
+•   Python alapok (függvények, osztályok, dataclass, typing).
+•   Alap hálózati fogalmak (csomag, késleltetés, csomagvesztés, topológia).
+•   Algebra/analízis alapok (logaritmus, valószínűség, átlag/szórás).
+•   Git alap workflow (clone, branch, commit, pull request).
+
+
+3. Kimenetek: mit kell a félév végére leadnod
+A gyakorlati munka központi artefaktja egy verziókezelt Git repository. Ebben található a szimulátor
+forráskódja, a tesztek, a futtatható kísérletek és a dokumentáció. A félév során több mérföldkő-leadást
+(M1-M4) készítesz, amelyek fokozatosan építik fel a végső projektet.
+
+3.1. Minimális beadandó elemek (összefoglaló)
+A félév végén (M4) a beadás minimum tartalma:
+
+•   wsnsim szimulátor teljes forráskódja (modulárisan, jól strukturáltan).
+•   Automatikus tesztek (pytest) - legalább a kritikus modulokra.
+•   Konfigurálható kísérlet-futtatás (pl. paraméter-söprés) és eredmény-kiértékelés (ábrák).
+•   Projekt dokumentáció (README + rövid esettanulmány / riport).
+•   Promptlog: a félév során használt MI interakciók lényegi naplója (átláthatóság).
+•   Rövid bemutató anyag (pl. 6-10 slide / jegyzet), amely összefoglalja a döntéseket és eredményeket.
+
+3.2. A „kész” definíciója (Definition of Done)
+Minden héten akkor tekintjük „késznek” az adott modult, ha az alábbiak teljesülnek:
+
+•   Kód lefut (nincs runtime error) és determinisztikus seed-del reprodukálható.
+•   Van legalább 1-3 célzott unit teszt a kritikus viselkedésre.
+•   A modul public API-ja dokumentált (docstring + rövid leírás a README-ben).
+•   Egy minimális kísérlet futtatható és készül legalább 1 ábra vagy táblázat eredménnyel.
+•   Git commitban van, érthető commit message-sel (mit és miért).
+•   A promptlog frissítve van: milyen MI segítséget vettél igénybe és milyen döntést hoztál.
+
+
+4. Eszközök és fejlesztői környezet
+
+4.1. Minimális technikai stack
+A projektet Pythonban fejlesztjük. Minimális javaslat:
+
+•   Python 3.10+ (ajánlott: 3.11 vagy újabb).
+•   Git (repo kezelés).
+•   Egy IDE vagy editor (ajánlott: VS Code vagy PyCharm).
+•   Parancssor / terminál.
+4.2. Ajánlott Python csomagok
+A konkrét függőségek a repo „requirements.txt” vagy „pyproject.toml” fájljában legyenek rögzítve.
+Tipikus csomagok:
+
+•   pytest - automatikus unit tesztekhez [11].
+•   numpy - numerikus számításokhoz és RNG-hez (default_rng, seed) [12].
+•   matplotlib - ábrákhoz (tengelyek, jelmagyarázat, caption).
+•   networkx - topológia és gráf vizualizáció (opcionális, de erősen ajánlott).
+•   pydantic vagy dataclasses - konfiguráció és adatmodellek (opcionális).
+
+4.3. Repo inicializálás - javasolt lépések
+Javasolt workflow (példa):
+
+git init
+python -m venv .venv
+.venv\Scripts\activate # Windows
+source .venv/bin/activate # Linux/Mac
+pip install -U pip
+pip install -r requirements.txt
+pytest -q
+
+Tipp: ha a csomópontok elhelyezése vagy a csatorna sztochasztikus, akkor mindig rögzíts seed-et a
+konfigurációban, hogy ugyanazt az eredményt tudd újra előállítani.
+
+4.4. Javasolt repo struktúra
+Egy bevált, egyszerű struktúra:
+
+wsnsim/
+  __init__.py
+  sim/            # diszkrét eseményű motor: event queue, clock, scheduler
+  models/         # channel, energy, mac, routing, sync, security, ...
+  scenarios/      # hálózati szcenáriók (topológia, forgalom, seed)
+  metrics/        # PDR, latency, energy/bit, stb.
+  utils/          # RNG, config, logging, plot helpers
+tests/
+  test_scheduler.py
+  test_channel.py
+  ...
+experiments/
+  run_sweep.py    # paraméter-söprés / batch futtatás
+  notebooks/      # opcionális (Jupyter), ha használsz
+reports/
+  figures/
+  week08_sync.md
+  ...
+README.md
+PROMPTLOG.md
+requirements.txt (vagy pyproject.toml)
+5. MI-eszközhasználat a gyakorlatban
+Ebben a tárgyban kifejezetten ösztönzött az MI intenzív használata - a cél azonban nem a „kód
+legeneráltatása”, hanem a mérnöki döntéshozatal gyorsítása: jobb architektúra, gyorsabb prototípus,
+több kísérlet, jobb dokumentáció és ellenőrizhető (reprodukálható) eredmények.
+
+5.1. MI-eszköztérkép - hol, mire használd
+Az alábbi táblázat segít eldönteni, hogy a workflow melyik pontján milyen MI-típus a leghasznosabb.
+
+Feladat            Ajánlott MI              Mit kérj tőle?               Mit ellenőrizz
+                   eszköztípus                                           kötelezően?
+Architektúra       Chat LLM                 Komponensek,                 Kohézió/szétválasztás,
+tervezés           (ChatGPT/Claude/Gem      felelősségek, API-k,         névkonzisztencia,
+                   ini),                    adatmodellek, edge-case      tesztelhetőség
+                   whiteboard/diagram       lista
+                   generálás
+Kódváz             IDE kódasszisztens       Skeleton, dataclass-ek,      Típusok, egységek,
+generálás          (Copilot/JetBrains       függvény-szignatúrák,        mellékhatások,
+                   AI/Codeium) + chat       docstring-ek                 determinisztikus seed
+                   LLM
+Tesztírás          Chat LLM + pytest        Edge-case-ek,             Teszt valóban hibát
+                   docs [11]                parametrizált tesztek,    fogna-e?
+                                            oracle-ek                 determinisztikus-e?
+Kísérlettervezés Chat LLM + „kritikus       Hipotézis, változók,      Mértékegységek, seed,
+                    kérdések” mód           kontroll, mérőszámok,     fair összehasonlítás,
+                                            sweep tartomány           logolás
+Dokumentáció / Chat LLM (szöveg),           Struktúra, összefoglaló,  Állítások forrása,
+riport              diagram tool            ábra-captions,            hivatkozások,
+                    (Mermaid), nyelvi       interpretáció             reprodukálható
+                    ellenőrző                                         parancsok
+Kód review /        Chat LLM + IDE          „Nézd át kritikus         Futtasd a teszteket,
+refaktor            refactor + statikus     szemmel”, bug gyanús      hasonlítsd össze
+                    eszközök (ruff/mypy     részek, egyszerűsítés     eredményeket seed
+                    opcionális)                                       mellett
+Megjegyzés: a Copilot felelős használatához lásd a GitHub dokumentációt [25]. Általános promptolási
+best practice-hez lásd az OpenAI útmutatóit [24].
+
+5.2. Kötelező transzparencia: PROMPTLOG
+A promptlog célja nem az, hogy „bizonygasd, hogy dolgoztál”, hanem hogy látható legyen a mérnöki
+folyamat: milyen kérdésekre kerestél választ, milyen alternatívákat mérlegeltél, és miért azt a megoldást
+választottad, ami végül a kódban van.
+
+A promptlog minimum tartalma minden jelentős MI-interakciónál:
+
+•   Cél (mit akartál megoldani).
+•   Kontextus (melyik modul / fájl / commit környéke).
+•   A prompt (lényegében, tömören - nem kell több oldalnyi chat log).
+•   A kapott javaslat lényege (bullet pontokban).
+•   A te döntésed: mit fogadtál el, mit dobtál el, mit módosítottál, és miért.
+•   Validálás: milyen teszttel/ábrával ellenőrizted.
+
+Javasolt fájl: PROMPTLOG.md a repo gyökerében.
+
+5.3. MI-vezérelt fejlesztés mérnöki módban: 5 lépéses hurok
+Minden heti sprintnél kövesd ezt a ritmust:
+
+1) Plan: Fogalmazd meg a célt, az elfogadási kritériumot és a metrikát (mitől lesz jó?).
+
+2) Generate: Használj MI-t skeleton, tesztötlet, vagy implementációs javaslat generálásra.
+
+3) Review: Olvasd át kritikus szemmel: egységek, szélső esetek, determinisztikusság, komplexitás.
+
+4) Test & Measure: Futtass teszteket + egy mini kísérletet; ellenőrizd a várható trendeket.
+
+5) Document: README + promptlog + ábra caption: mit csináltál és mit látsz az eredményen.
+
+5.4. Kritikus olvasnivalók az MI-használathoz és reprodukálhatósághoz
+Ezek rövidek, de a félév elején kifejezetten ajánlott átfutni őket:
+
+•   OpenAI - prompt engineering best practices (ChatGPT / API) [24]
+•   GitHub Copilot - felelős használat és best practice [25]
+•   Anthropic Claude - prompt engineering áttekintés [26]
+•   Reprodukálható számítási kutatás: „Ten Simple Rules...” [27]
+•   PEP 8 - olvasható Python kód [13]
+
+
+6. A wsnsim szimulátor - specifikáció és architektúra
+
+6.1. Diszkrét eseményű szimuláció röviden
+A diszkrét eseményű szimuláció (DES) lényege, hogy nem folyamatos időben integrálsz, hanem
+eseményeket ütemezel (pl. „csomag elküldése t=1.200s-nél”, „ACK timeout t=1.260s-nél”). A szimulátor
+egy prioritásos eseménylistát tart fenn (tipikusan priority queue/heap), és mindig a legkorábbi eseményt
+hajtja végre. Ez a modell jól illeszkedik hálózati protokollokhoz. Koncepcionális háttérhez jó referencia a
+SimPy dokumentációja [10].
+
+A DES motor minimális komponensei:
+
+•   SimClock: a szimulált idő (float vagy int microsecond).
+•   Event: (time, priority, callback, payload).
+•   EventQueue: priority queue (heap), amely idő szerint rendez.
+•   Scheduler: API az események beszúrására/cancel-elésére.
+•   Logger/Trace: időbélyeges eseménynapló a debughoz és validáláshoz.
+6.2. Modulok és felelősségek
+A cél, hogy minden réteg külön modul legyen. Javasolt minimális modul-lista (a félév során építjük fel):
+
+Modul                 Felelősség (mit csinál?)
+sim                   eseménykezelő, event queue, clock, scheduler
+channel               path loss + shadowing + BER/PER/PRR modell; link budget
+energy                node állapotgép (TX/RX/IDLE/SLEEP) + fogyasztás integrálása
+mac                   ALOHA, CSMA/CA, opcionálisan TDMA; ütközés/backoff modellek
+topology              random/grid/cluster node elhelyezés; connectivity graph
+routing               flooding, sink-fa, LEACH/RPL-szerű baseline (egyszerűsített)
+reliability           ACK/ARQ, retry/backoff, QoS/priority
+sync_localization     óra-drift, TPSN/FTSP-szerű szinkron, RSSI trilateráció
+aggregation           in-network aggregáció, delta-kódolás
+security              threat model + overhead model; replay védelem
+edge_ai               node-oldali detektor, kommunikációspórolás vs FP/FN
+federated             FedAvg-szerű tanulás szimulációja + kommunikációs költség
+optimization          paraméter sweep + Pareto front kiválasztás
+
+6.3. Metrikák: mit mérünk és miért
+A WSN tervezés tipikusan multi-objektív. A szimulátorban legalább az alábbiakat mérd:
+
+Metrika                Értelmezés
+PDR / PRR              Packet Delivery Ratio - mennyi csomag ér célba (megbízhatóság).
+Latency                Késleltetés - különösen riasztásoknál kritikus.
+Energy / bit           Kommunikáció drága: energia/hasznos bit (vagy energia/csomag).
+Lifetime               Becsült élettartam: mikor merül le a kritikus node/sink környéke?
+Control overhead       Routing/MAC kontroll üzenetek aránya a hasznos adatforgalomhoz képest.
+Tipp: mindig rögzítsd a futtatási konfigurációt (N, seed, TX power, duty cycle, stb.) az eredmények mellé -
+különben a grafikon nem reprodukálható.
+
+6.4. Reprodukálható kísérletezés - minimum elvárás
+A kísérleteknek reprodukálhatónak kell lenniük. Ez nem csak „szép dolog”: multi-objektív trade-offoknál
+az eredmények könnyen félreérthetők, ha nem kontrollálod a véletlent. A reproducibility jó
+gyakorlatához lásd Sandve et al. „Ten Simple Rules...” [27].
+
+•   Minden futás kapjon egy konfigurációs azonosítót (hash vagy fájlnév).
+•   Seed rögzítése (numpy default_rng) [12].
+•   Konfiguráció mentése (JSON/YAML) a futás kimenetébe.
+•   Eredményfájlok (CSV) + generált ábrák (PNG/PDF) mentése.
+•   A README-ben 1 parancs legyen, amivel újra futtatható a fő kísérlet.
+7. Heti feladatok és ütemterv (1-14. hét)
+A félév 14 tematikus hétből áll. Minden héten ugyanazt a ritmust követjük:
+
+•   15 perc: gyors feladat (papír / táblázat / gondolkodási warm-up) - cél a fogalmi tisztázás.
+•   60 perc: „vibe coding sprint” - MI-asszisztált implementáció a wsnsim-ben.
+•   15 perc: review + teszt - validálás, commit, promptlog frissítés.
+
+Fontos: a sprint rövid, ezért az MI-t úgy használd, hogy a kritikus gondolkodás és validálás ne maradjon
+el. A kód „megszülethet” MI-vel, de a felelősség és a minőségbiztosítás a tiéd.
+
+7.1. hét: WSN alapok & szimulátor indítás
+
+Célok
+• Átlátni a WSN fogalmát, erőforrás-korlátait és tipikus mérőszámait.
+• Felépíteni a repo skeleton-t és a diszkrét eseményű szimuláció minimal motorját.
+• Bevezetni a logolást/trace-t és az első unit teszteket.
+
+Elméleti minimum (amit értened kell)
+Kulcsfogalmak (gyorstalpaló):
+
+•   WSN vs IoT
+•   erőforrás-korlátok
+•   metrikák (PDR
+•   késleltetés
+•   energia)
+•   diszkrét eseményű szimuláció
+
+Tétel / kérdéskörök (ellenőrzőlista):
+
+•   WSN definíció és alkalmazási osztályok
+•   Szenzorcsomópont felépítése és korlátai
+•   Diszkrét eseményű szimuláció elve
+•   Metrikák: PDR, késleltetés, energia, élettartam
+
+Szimulátor modul fókusz
+wsnsim v0: eseménylista (priority queue), sim time, logger, alap statisztika
+
+Heti feladatblokk (15 + 60 + 15 perc)
+15 perc - warm-up: Repo + projekt skeleton + README
+
+60 perc - vibe coding sprint: wsnsim v0: eseménykezelő + logger generálás MI-vel
+
+15 perc - review & teszt: Unit teszt eseményütemezőre + commit + promptlog #1
+
+MI fókusz (vibe coding irányítottan)
+LLM-mel architektúra tervezés; generált egységtesztek futtatása
+Ajánlott prompt ötletek (másold be és töltsd ki kontextussal):
+
+•   Tervezd meg a wsnsim minimális architektúráját modulokra bontva (sim, models, scenarios, metrics).
+    Adj 5-10 függvény-szignatúrát.
+•   Írj egy minimal event scheduler-t heapq-val: schedule(time, callback), run(until). Adj hozzá unit
+    teszteket determinisztikus sorrendre.
+•   Kérj 'code review' jellegű átnézést: hol lehet nondeterminism, hol kell seed?
+
+Tipikus hibák és gyors ellenőrzések
+• Az események sorrendje azonos időbélyegnél: kell priority / tie-breaker.
+• Túl sok globális állapot: nehéz tesztelni.
+• Nincs reprodukálható seed már az elején.
+
+Heti leadandó / DoD
+• Repo létrehozva, futtatható 'hello simulation' példával.
+• Scheduler + logger modul (wsnsim v0).
+• Legalább 2 unit teszt a schedulerhez.
+
+Ajánlott olvasás
+• SimPy - DES alapfogalmak és esemény-alapú gondolkodás (koncept) [10]
+• PEP 8 - olvasható Python [13]
+• pytest - parametrizált tesztek [11]
+
+Hivatkozások ehhez a héthez: [10][11][13]
+
+
+
+7.2. hét: Rádiós csatorna modellek
+
+Célok
+• A log-distance path loss és shadowing modell bevezetése.
+• PRR(d) görbe implementálása és kézi számítással való validálása.
+• Link budget szemlélet: TX power, path loss, SNR → BER/PER → PRR.
+
+Elméleti minimum (amit értened kell)
+Kulcsfogalmak (gyorstalpaló):
+
+•   Log-distance path loss
+•   shadowing
+•   RSSI/SNR
+•   BER→PER
+•   PRR
+
+Tétel / kérdéskörök (ellenőrzőlista):
+
+•   Terjedési modellek (log-distance, shadowing)
+•   Link budget alapok
+•   Csomaghibamodellek: BER→PER→PRR
+•   Interferencia és kollízió fogalma
+
+Szimulátor modul fókusz
+Csatorna modul: távolság-alapú PRR + shadowing; Packet modell
+
+Heti feladatblokk (15 + 60 + 15 perc)
+15 perc - warm-up: Path loss képlet papíron + 2 számpélda
+
+60 perc - vibe coding sprint: Csatorna modul: PRR(d) implementálás MI-vel
+
+15 perc - review & teszt: Validálás kézi számítással + PRR görbe + commit
+
+MI fókusz (vibe coding irányítottan)
+LLM képlet implementálásra; grafikon validálás (tengely, mértékegység)
+
+Ajánlott prompt ötletek (másold be és töltsd ki kontextussal):
+
+•   Implementáld a log-distance + log-normal shadowing modellt Pythonban: pl(d), rssi(d). Javasolj
+    paramétereket (n, sigma).
+•   Adj unit teszt ötleteket a csatorna modellre: monotonicitás, határértékek (d→d0), seed hatás.
+•   Készíts egy kísérletet: PRR(d) görbe több sigma értékre; hogyan ábrázoljam?
+
+Tipikus hibák és gyors ellenőrzések
+• Egységek keverése (m vs km, dBm vs mW).
+• Shadowing véletlen komponens seed nélkül → irreprodukálható görbék.
+• PRR modell túl 'kemény' küszöb, nincs realisztikus átmenet.
+
+Heti leadandó / DoD
+• channel modul: PRR(distance) + shadowing opció.
+• Egy ábra: PRR vs távolság (legalább 2 paraméter beállítással).
+• Validálás: kézi számítás 2 ponton dokumentálva.
+
+Ajánlott olvasás
+• Seidel & Rappaport - path loss és shadowing (klasszikus modell) [16]
+• Dargie & Poellabauer - rádiós csatorna és linkek alapjai [2]
+
+Hivatkozások ehhez a héthez: [16][2][12]
+
+
+
+7.3. hét: Energia és üzemidő
+
+Célok
+• Energiafogyasztás komponenseinek modellezése (MCU, rádió TX/RX/IDLE/SLEEP).
+• Duty-cycling és üzemidő számítás alapok.
+•   Energia-büdzsé: egy node élettartamának becslése különböző duty cycle mellett.
+
+Elméleti minimum (amit értened kell)
+Kulcsfogalmak (gyorstalpaló):
+
+•   Energiafogyasztási komponensek
+•   duty-cycling
+•   élettartam
+•   energia-büdzsé
+
+Tétel / kérdéskörök (ellenőrzőlista):
+
+•   Node energiafelhasználás: MCU, rádió TX/RX/idle/sleep
+•   Duty-cycling: élettartam vs késleltetés
+•   Energia-büdzsé számítás
+•   Lifetime definíciók
+
+Szimulátor modul fókusz
+Energia modul: állapotgépes fogyasztás, integrálás; alvó mód modell
+
+Heti feladatblokk (15 + 60 + 15 perc)
+15 perc - warm-up: Energia-büdzsé számítás: 1 node, 1 év
+
+60 perc - vibe coding sprint: Energia modul: állapotgép + fogyasztás MI-vel
+
+15 perc - review & teszt: Sanity check: negatív energia? + üzemidő kísérlet
+
+MI fókusz (vibe coding irányítottan)
+LLM állapotgép generálás; sanity check kérdések kérése
+
+Ajánlott prompt ötletek (másold be és töltsd ki kontextussal):
+
+•   Tervezd meg az energy state machine-t (enum) és az energia integrálását események alapján. Adj
+    API-t és dataclass struktúrát.
+•   Írj teszteket: negatív energia ne legyen; duty-cycle mellett az átlagos fogyasztás kövesse az elvárt
+    trendet.
+•   Adj egy 'sanity check' checklistet az energia modellhez.
+
+Tipikus hibák és gyors ellenőrzések
+• A teljesítmény (W) és energia (J) keverése.
+• Nem veszed figyelembe az állapotváltások (switching) költségét (ha modellezed, dokumentáld).
+• A rádió RX/TX időtartam nincs konzisztensen számolva (packet duration).
+
+Heti leadandó / DoD
+• energy modul: állapotgép + fogyasztás integrálása idő szerint.
+• Egy mini-kísérlet: duty cycle vs becsült üzemidő (grafikon).
+• Sanity check: 'negatív energia' guard + teszt.
+Ajánlott olvasás
+• Heinzelman et al. (LEACH) - klasszikus rádiós energia modell (Tx/Rx energia) [17]
+• Sohraby et al. - energiahatékonyság és WSN constraint-ek [1]
+
+Hivatkozások ehhez a héthez: [17][1]
+
+
+
+7.4. hét: MAC protokollok
+Mérföldkő: M1 Szimulátor alap (leadás ezen a héten)
+
+Célok
+• MAC protokollok trade-off: ALOHA vs CSMA/CA (késleltetés, ütközés, energia).
+• Ütközés/backoff modellezése a szimulátorban.
+• Determinista tesztek: collision scenario reprodukálható seed-del.
+
+Elméleti minimum (amit értened kell)
+Kulcsfogalmak (gyorstalpaló):
+
+•   ALOHA
+•   CSMA/CA
+•   TDMA
+•   ütközés
+•   backoff
+•   energiahatékony MAC
+
+Tétel / kérdéskörök (ellenőrzőlista):
+
+•   ALOHA vs CSMA/CA vs TDMA trade-off
+•   Ütközés és backoff modellezése
+•   Rejtett állomás probléma
+•   Energiahatékony MAC: preamble sampling
+
+Szimulátor modul fókusz
+MAC modul v1: ALOHA + CSMA backoff implementáció
+
+Heti feladatblokk (15 + 60 + 15 perc)
+15 perc - warm-up: ALOHA vs CSMA összehasonlító táblázat
+
+60 perc - vibe coding sprint: MAC modul: ALOHA + CSMA backoff MI-vel
+
+15 perc - review & teszt: Ütközés teszt determinisztikus seed + commit
+
+MI fókusz (vibe coding irányítottan)
+LLM MAC kód review: race condition figyelés; tesztesetek ütközésre
+
+Ajánlott prompt ötletek (másold be és töltsd ki kontextussal):
+•   Írj ALOHA MAC modult (send at will) és CSMA backoff-ot (carrier sense + random backoff). Adj
+    paramétereket (slot, cwmin, cwmax).
+•   Készíts determinisztikus teszt-szcenáriót két node-al: egyszerre küldés → ütközés. Mi az elvárt
+    viselkedés ALOHA vs CSMA esetén?
+•   Generálj összehasonlító táblázatot: ALOHA/CSMA/TDMA pro-kontra WSN szemszögből.
+
+Tipikus hibák és gyors ellenőrzések
+• Carrier sense fogalma elnagyolva: definiáld, mit jelent a szimulátorban (csatorna foglalt? küszöb?).
+• Backoff random nélkül vagy seed nélkül.
+• Ütközés definíciója pontatlan (időben átfedő adások).
+
+Heti leadandó / DoD
+• mac modul v1: ALOHA + CSMA backoff implementáció.
+• Ütközés teszt + seed dokumentálás.
+• M1 mérföldkő leadása (ha a kurzus ütemezése így adja): szimulátor alap + csatorna + energia (lásd 8.
+    fejezet).
+
+Ajánlott olvasás
+• Abramson - ALOHA (alapötlet és történeti referencia) [14]
+• Kleinrock & Tobagi - CSMA throughput-delay karakterisztika [15]
+• Dargie & Poellabauer - MAC alapok WSN-ben [2]
+
+Hivatkozások ehhez a héthez: [14][15][2]
+
+
+
+7.5. hét: Topológia és kapcsolatgráfok
+
+Célok
+• Topológia generálás: random/grid/cluster deployment.
+• Connectivity (összefüggőség) vizsgálat és szomszédsági gráf építés.
+• Sink elhelyezés és hatása.
+
+Elméleti minimum (amit értened kell)
+Kulcsfogalmak (gyorstalpaló):
+
+•   Random/grid deployment
+•   sűrűség
+•   összefüggőség
+•   szomszédsági gráf
+
+Tétel / kérdéskörök (ellenőrzőlista):
+
+•   Topológia típusok: random, grid, cluster
+•   Összefüggőség és redundancia
+•   Sink elhelyezés hatása
+•   Mobilitás alapok
+
+Szimulátor modul fókusz
+Topológia generátor: random/grid/cluster; NetworkX vizualizáció
+
+Heti feladatblokk (15 + 60 + 15 perc)
+15 perc - warm-up: Topológia rajz: 10 node, hatótáv, linkek
+
+60 perc - vibe coding sprint: Topológia generátor + NetworkX vizualizáció MI-vel
+
+15 perc - review & teszt: Összefüggőség teszt + ábra seed dokumentálás
+
+MI fókusz (vibe coding irányítottan)
+LLM refaktorálás (dataclass); ábra seed+paraméter dokumentálás
+
+Ajánlott prompt ötletek (másold be és töltsd ki kontextussal):
+
+•   Implementálj topológia generátort: random uniform, grid, és egy egyszerű cluster modell. Adj seed-
+    et és paramétereket.
+•   Adj ötleteket connectivity tesztekre: van-e út a sinkhez? hány komponens? átlagos degree?
+•   Készíts NetworkX vizualizációt és hogyan exportáljam ábrába?
+
+Tipikus hibák és gyors ellenőrzések
+• A random deployment seed nélküli.
+• Hatótáv alapú link: egységek és távolságszámítás hibás.
+• A vizualizáció nem tartalmaz tengelyt/scale-t/legend-et.
+
+Heti leadandó / DoD
+• topology modul: legalább 2 deployment stratégia + neighbor graph.
+• Összefüggőség teszt + 1 ábra seed paraméterekkel.
+
+Ajánlott olvasás
+• Sohraby et al. - topológia és hálózati modellek [1]
+
+Hivatkozások ehhez a héthez: [1][12]
+
+
+
+7.6. hét: Routing és adatgyűjtés
+
+Célok
+• Routing és adatgyűjtés baseline-ok: flooding és sink-fa (tree-based collection).
+• Routing metrikák: hop count / ETX intuíció.
+• Összehasonlító kísérlet: energia/bit és PDR különböző routingokra.
+
+Elméleti minimum (amit értened kell)
+Kulcsfogalmak (gyorstalpaló):
+•   Flooding
+•   shortest-path
+•   fa-alapú gyűjtés
+•   LEACH
+•   RPL szemlélet
+
+Tétel / kérdéskörök (ellenőrzőlista):
+
+•   Flooding vs fa-alapú vs cluster routing
+•   LEACH protokoll koncepció
+•   RPL és 6LoWPAN áttekintés
+•   Energia vs megbízhatóság trade-off
+
+Szimulátor modul fókusz
+Routing modul: flooding baseline + sink-fa (BFS/ETX)
+
+Heti feladatblokk (15 + 60 + 15 perc)
+15 perc - warm-up: Routing stratégiák pro/con táblázat
+
+60 perc - vibe coding sprint: Routing modul: flooding + sink-fa MI-vel
+
+15 perc - review & teszt: Összehasonlító kísérlet + energia/bit metrika
+
+MI fókusz (vibe coding irányítottan)
+LLM összehasonlító táblázat; stress test szcenáriók
+
+Ajánlott prompt ötletek (másold be és töltsd ki kontextussal):
+
+•   Implementálj flooding routingot (TTL-lel) és egy sink-fát BFS alapján. Milyen adatstruktúrákat
+    használjak?
+•   Adj kísérlettervet: hogyan hasonlítsam össze flooding vs tree routingot fair módon (azonos forgalom,
+    seed)?
+•   Írj egy ETX-szerű metrikát PRR alapján, és hogyan válasszak szülőt?
+
+Tipikus hibák és gyors ellenőrzések
+• Flooding végtelen ciklus (nincs TTL/seen cache).
+• Tree routing: nincs újraszámolás link hibák esetén (dokumentáld, ha statikus).
+• Összehasonlítás nem fair (más traffic, más seed).
+
+Heti leadandó / DoD
+• routing modul: flooding + sink-fa routing.
+• Egy összehasonlító kísérlet: PDR/latency/energy per bit grafikon.
+
+Ajánlott olvasás
+• IETF RPL (LLN routing) - koncepcionális referencia [5]
+• LEACH - clustering alapú adatgyűjtés [17]
+Hivatkozások ehhez a héthez: [5][17]
+
+
+
+7.7. hét: Megbízhatóság és ARQ
+Mérföldkő: M2 Protokollok (leadás ezen a héten)
+
+Célok
+• Megbízhatóság: link hibák kezelése ARQ-val (ACK + retry).
+• Retry/backoff paraméterek hatása: PDR vs energia trade-off.
+• M2 mérföldkő összerendezése: MAC + routing + kísérlet.
+
+Elméleti minimum (amit értened kell)
+Kulcsfogalmak (gyorstalpaló):
+
+•   Link hibák
+•   ARQ
+•   retry/backoff
+•   end-to-end megbízhatóság
+•   QoS
+
+Tétel / kérdéskörök (ellenőrzőlista):
+
+•   Hibamodellek: link, burst
+•   ARQ és retry mechanizmusok
+•   Multi-hop megbízhatóság
+•   QoS: riasztás vs háttér adat
+
+Szimulátor modul fókusz
+ACK + retry modul; prioritás kezelés (riasztás queue)
+
+Heti feladatblokk (15 + 60 + 15 perc)
+15 perc - warm-up: Hibatípusok lista + kezelési stratégia
+
+60 perc - vibe coding sprint: ACK + retry modul MI-vel + paraméter sweep
+
+15 perc - review & teszt: PDR vs energia görbe + eredmény narratíva ellenőrzés
+
+MI fókusz (vibe coding irányítottan)
+LLM paraméter-söprés generálás; eredmény narratíva ellenőrzés
+
+Ajánlott prompt ötletek (másold be és töltsd ki kontextussal):
+
+•   Adj hozzá ACK + retry mechanizmust a MAC vagy reliability modulhoz. Milyen eseményeket
+    ütemezzek (timeout)?
+•   Tervezd meg a paraméter sweep-et retry_limit és backoff tartományokra. Milyen grafikonokat
+    rajzoljak?
+•   Készíts narratívát: hogyan magyarázzam el a PDR vs energy trade-offot?
+
+Tipikus hibák és gyors ellenőrzések
+• Timeout túl kicsi/nagy: irreális viselkedés.
+• ACK-ot ugyanúgy kezeled, mint data packet-et (méret, energia) - legyen dokumentálva.
+• A PDR javul, de nem méred az energia többletet.
+
+Heti leadandó / DoD
+• reliability: ACK + retry/backoff implementálva.
+• Egy kísérlet: PDR vs energia görbe különböző retry limitekkel.
+• M2 mérföldkő leadása (lásd 8. fejezet).
+
+Ajánlott olvasás
+• Dargie & Poellabauer - reliability és link hibák alapok [2]
+
+Hivatkozások ehhez a héthez: [2]
+
+
+
+7.8. hét: Időszinkron és lokalizáció
+
+Célok
+• Időszinkronizáció szerepe és óra-drift modellezése.
+• RSSI alapú lokalizáció és trilateráció szimuláció.
+• Unit tesztek ismert pontokra.
+
+Elméleti minimum (amit értened kell)
+Kulcsfogalmak (gyorstalpaló):
+
+•   TPSN/FTSP
+•   óra-drift
+•   RSSI lokalizáció
+•   trilateráció
+•   ToA/TDoA
+
+Tétel / kérdéskörök (ellenőrzőlista):
+
+•   Időszinkronizáció fontossága
+•   Szinkron protokollok (TPSN, FTSP)
+•   Lokalizáció: RSSI, ToA, TDoA
+•   Trilateráció alapok
+
+Szimulátor modul fókusz
+Óra-drift modell; RSSI trilateráció szimulált anchor-okkal
+Heti feladatblokk (15 + 60 + 15 perc)
+15 perc - warm-up: Trilateráció papíron: 3 anchor, 1 ismeretlen
+
+60 perc - vibe coding sprint: Drift modell + trilateráció implementálás MI-vel
+
+15 perc - review & teszt: Unit teszt ismert pozíciókra + least squares opció
+
+MI fókusz (vibe coding irányítottan)
+LLM matematikai kód unit teszt; alternatív megoldások kérése
+
+Ajánlott prompt ötletek (másold be és töltsd ki kontextussal):
+
+•   Implementálj egyszerű drift modellt: mindegyik node órája ppm eltéréssel fut. Hogyan számoljam a
+    driftet események közt?
+•   Írj trilateráció (least squares) implementációt és unit tesztet 3 anchor + 1 pont esetre.
+•   Adj alternatív lokalizációs megközelítéseket és mikor nem működik az RSSI?
+
+Tipikus hibák és gyors ellenőrzések
+• Drift képlet rossz skálázással (ppm → 1e-6).
+• Trilateráció numerikailag instabil, rossz anchor geometria esetén.
+• RSSI→distance inverz túl naiv, nincs noise model.
+
+Heti leadandó / DoD
+• sync_localization modul: drift modell + trilateráció.
+• Unit teszt: ismert pozíciók esetén kis hiba.
+• Rövid jegyzet/ábra: lokalizáció hiba a zaj függvényében (opcionális).
+
+Ajánlott olvasás
+• TPSN - Timing-sync Protocol for Sensor Networks [18]
+• FTSP - Flooding Time Synchronization Protocol [19]
+
+Hivatkozások ehhez a héthez: [18][19][16]
+
+
+
+7.9. hét: Adataggregáció és tömörítés
+
+Célok
+• In-network processing: adataggregáció és tömörítés motivációja.
+• Aggregációs pipeline implementáció (pl. fa menti AVG) és delta-kódolás.
+• Trade-off: kommunikációs költség vs mérési hiba (MSE).
+
+Elméleti minimum (amit értened kell)
+Kulcsfogalmak (gyorstalpaló):
+
+•   In-network processing
+•   aggregációs függvények
+•   delta-kódolás
+•   edge vs cloud
+
+Tétel / kérdéskörök (ellenőrzőlista):
+
+•   Miért aggregálunk (kommunikáció drága)
+•   Aggregációs függvények: átlag, min, max
+•   Tömörítés: delta-kódolás, threshold
+•   Edge vs cloud feldolgozás
+
+Szimulátor modul fókusz
+Aggregációs pipeline: fa menti aggregálás; delta-kódolás
+
+Heti feladatblokk (15 + 60 + 15 perc)
+15 perc - warm-up: Aggregációs stratégiák lista + use case
+
+60 perc - vibe coding sprint: Aggregáció pipeline + delta-kódolás MI-vel
+
+15 perc - review & teszt: Kommunikáció vs MSE kísérlet + 1 oldalas riport
+
+MI fókusz (vibe coding irányítottan)
+LLM 2 stratégia prototípus; riport struktúra javaslat
+
+Ajánlott prompt ötletek (másold be és töltsd ki kontextussal):
+
+•   Készíts két aggregációs stratégiát: (1) nyers adat továbbítás, (2) fa menti átlag + delta kódolás. Milyen
+    interfészt használjak?
+•   Tervezd meg a kísérletet: hogyan mérjem a kommunikáció csökkenést és az aggregáció okozta hibát
+    (pl. MSE)?
+•   Javasolj riport struktúrát 1 oldalas kísérleti összefoglalóhoz.
+
+Tipikus hibák és gyors ellenőrzések
+• Nem definiálod, mi a 'hiba' (ground truth).
+• Aggregációs függvény nem asszociatív/kommutatív → függ a fa struktúrától (dokumentáld).
+• Delta-kódolásnál nincs reset / overflow kezelve (ha modellezed).
+
+Heti leadandó / DoD
+• aggregation modul: pipeline + delta-kódolás.
+• 1 oldalas mini riport (reports/week09_aggregation.md) 1 grafikon + interpretáció.
+
+Ajánlott olvasás
+• Sohraby et al. - data aggregation / in-network processing [1]
+• Dargie & Poellabauer - data-centric megközelítések [2]
+
+Hivatkozások ehhez a héthez: [1][2]
+7.10. hét: Biztonság WSN-ben
+
+Célok
+• WSN threat model és tipikus támadások (replay, jamming, sinkhole, Sybil, stb.).
+• Biztonsági overhead modell: kriptográfia/ellenőrzés energia és latency költsége.
+• Abuse-case tesztek: replay elleni védelem.
+
+Elméleti minimum (amit értened kell)
+Kulcsfogalmak (gyorstalpaló):
+
+•   Threat model
+•   támadások
+•   könnyűsúlyú kripto
+•   kulcsmenedzsment
+
+Tétel / kérdéskörök (ellenőrzőlista):
+
+•   WSN fenyegetési modell
+•   Támadások: replay, jamming, sinkhole, Sybil
+•   Könnyűsúlyú kriptográfia
+•   Biztonság-energia trade-off
+
+Szimulátor modul fókusz
+Biztonsági overhead modell; replay védelem (nonce)
+
+Heti feladatblokk (15 + 60 + 15 perc)
+15 perc - warm-up: Threat checklist kitöltése a projekthez
+
+60 perc - vibe coding sprint: Biztonsági overhead modell + replay védelem MI-vel
+
+15 perc - review & teszt: Abuse case teszt (replay) + energia overhead mérés
+
+MI fókusz (vibe coding irányítottan)
+LLM threat model generálás; abuse case tesztek
+
+Ajánlott prompt ötletek (másold be és töltsd ki kontextussal):
+
+•   Generálj egy threat checklistet a wsnsim projektre: asset, attacker, attack surface, mitigations.
+•   Adj ötletet: hogyan modellezzem 'security overhead'-ként az extra byte-okat és extra CPU időt az
+    energia modulban?
+•   Írj abuse-case tesztet replay attack szimulálására és védelemre (nonce/seq).
+
+Tipikus hibák és gyors ellenőrzések
+• Túl részletes 'valódi kripto' implementációba mész - a cél a trade-off modellezés, nem a crypto
+    library.
+• A támadás modellje nincs definiálva (mit csinál az attacker a szimulátorban?).
+• Nincs negatív teszt: védelem nélkül mennyire rossz?
+Heti leadandó / DoD
+• security modul: replay védelem (seq/nonce) + overhead model.
+• Abuse-case teszt (replay) + mérés (energia overhead).
+
+Ajánlott olvasás
+• Karlof & Wagner - routing támadások (sinkhole, HELLO flood) [20]
+• Douceur - Sybil attack [21]
+• Perrig et al. - SPINS (SNEP, μTESLA) [22]
+• Wood & Stankovic - DoS támadások WSN-ben [23]
+
+Hivatkozások ehhez a héthez: [20][21][22][23]
+
+
+
+7.11. hét: Edge AI szenzorhálóban
+Mérföldkő: M3 Biztonság & AI (leadás ezen a héten)
+
+Célok
+• Edge AI motiváció: kommunikáció csökkentés, latency, privacy.
+• Szimulált szenzorjel generálás (normál + anomália) és egyszerű detektor.
+• Trade-off: kommunikáció spórolás vs false positive/negative.
+
+Elméleti minimum (amit értened kell)
+Kulcsfogalmak (gyorstalpaló):
+
+•   Node-oldali ML
+•   eseménydetektálás
+•   modellkompresszió
+•   TinyML
+
+Tétel / kérdéskörök (ellenőrzőlista):
+
+•   Mikor kell ML a node-ra?
+•   Idősor jellemzők és egyszerű modellek
+•   Modellkompresszió
+•   Kommunikáció vs pontosság trade-off
+
+Szimulátor modul fókusz
+Szimulált szenzorjel + anomália detektor; kommunikációs stratégia
+
+Heti feladatblokk (15 + 60 + 15 perc)
+15 perc - warm-up: Feature lista idősor anomália detektáláshoz
+
+60 perc - vibe coding sprint: Szenzorjel generátor + detektor MI-vel
+
+15 perc - review & teszt: Kommunikáció spórolás vs false positive trade-off
+MI fókusz (vibe coding irányítottan)
+LLM feature ötletek; seed és hiperparaméter logolás
+
+Ajánlott prompt ötletek (másold be és töltsd ki kontextussal):
+
+•   Adj ötleteket idősor feature-ökre anomália detektáláshoz (statisztikai + egyszerű ML).
+•   Implementálj egy baseline detektort (pl. z-score, EWMA) és definiálj metrikákat (FP/FN, comm
+    saved).
+•   Hogyan logoljam a hiperparamétereket és seed-et a detektor kísérleteknél?
+
+Tipikus hibák és gyors ellenőrzések
+• Nincs ground truth → nem tudod FP/FN-t mérni.
+• A kommunikáció spórolás definíciója nincs rögzítve (byte? packet? radio on-time?).
+• A detektor paraméterei nincsenek a configban → irreprodukálható.
+
+Heti leadandó / DoD
+• edge_ai modul: jel generátor + detektor + mérés.
+• Egy grafikon: communication saved vs false positive (vagy ROC-szerű).
+• M3 mérföldkő leadása (lásd 8. fejezet) - security vagy edge AI fókusz.
+
+Ajánlott olvasás
+• TensorFlow Lite Micro (TinyML runtime) - áttekintés [28]
+• Google AI Edge LiteRT Microcontrollers - erőforrás-korlátos inference [29]
+
+Hivatkozások ehhez a héthez: [28][29]
+
+
+
+7.12. hét: Federated learning WSN-ben
+
+Célok
+• Federated Learning (FL) intuíció és FedAvg algoritmus.
+• Kommunikációs költség modell FL vs centralizált.
+• Kísérlet: update periódus hatása a költségre és konvergenciára (egyszerűsítve).
+
+Elméleti minimum (amit értened kell)
+Kulcsfogalmak (gyorstalpaló):
+
+•   FL koncepció
+•   kommunikációs költség
+•   model update tömörítés
+•   privacy
+
+Tétel / kérdéskörök (ellenőrzőlista):
+
+•   Federated learning intuíció
+•   Kommunikációs költség FL-ben
+•   Model update tömörítés
+•   Privacy alapok
+
+Szimulátor modul fókusz
+Federált átlagolás szimulációja; költségmodell
+
+Heti feladatblokk (15 + 60 + 15 perc)
+15 perc - warm-up: FL vs centralizált kommunikáció számítás
+
+60 perc - vibe coding sprint: FedAvg szimulációja MI-vel + költségmodell
+
+15 perc - review & teszt: Update periódus kísérlet + ábra caption ellenőrzés
+
+MI fókusz (vibe coding irányítottan)
+LLM FL baseline; kommunikációs költség mérhetővé alakítás
+
+Ajánlott prompt ötletek (másold be és töltsd ki kontextussal):
+
+•   Implementálj FedAvg szimulációt: K node lokális update, server aggregál. Milyen adatstruktúrák
+    legyenek a modellekhez?
+•   Adj kommunikációs költség modellt: bytes per round, rounds; hasonlítsd össze centralizált tanítással.
+•   Tervezd meg a kísérletet update_period paraméterrel és ábrázolással.
+
+Tipikus hibák és gyors ellenőrzések
+• Túl bonyolult ML modellt választasz - a cél a kommunikációs trade-off, nem a SOTA pontosság.
+• Nem rögzíted a modell méretet (paraméterek száma) → nem mérhető a költség.
+• A 'konvergencia' metrika nincs definiálva (loss? accuracy? proxy?).
+
+Heti leadandó / DoD
+• federated modul: FedAvg baseline + cost model.
+• Egy ábra: update periódus vs kommunikációs költség (és opcionálisan proxy accuracy).
+
+Ajánlott olvasás
+• McMahan et al. - FedAvg / Federated Learning alapcikk [4]
+
+Hivatkozások ehhez a héthez: [4]
+
+
+
+7.13. hét: Tervezési tér és optimalizálás
+
+Célok
+• Design space exploration: paraméter-söprés automatizálása.
+• Multi-objektív optimalizálás és Pareto-front kiválasztás.
+• Érzékenységvizsgálat: mely paraméterek számítanak legjobban?
+Elméleti minimum (amit értened kell)
+Kulcsfogalmak (gyorstalpaló):
+
+•   Design space exploration
+•   Pareto-front
+•   érzékenységvizsgálat
+•   reprodukálhatóság
+
+Tétel / kérdéskörök (ellenőrzőlista):
+
+•   Multi-objektív optimalizálás
+•   Pareto-front fogalom
+•   Érzékenységvizsgálat
+•   Reprodukálható kísérletezés
+
+Szimulátor modul fókusz
+Automatikus sweep + Pareto-kiválasztás; config dump
+
+Heti feladatblokk (15 + 60 + 15 perc)
+15 perc - warm-up: Paraméter lista + érzékenységi rangsor
+
+60 perc - vibe coding sprint: Sweep + Pareto-front implementálás MI-vel
+
+15 perc - review & teszt: Reproducibility checklist + config dump + végleges futtatás
+
+MI fókusz (vibe coding irányítottan)
+LLM kísérletterv generálás; reproducibility checklist
+
+Ajánlott prompt ötletek (másold be és töltsd ki kontextussal):
+
+•   Készíts sweep framework-öt: param grid → futások → CSV összegzés → Pareto szűrés. Adj kódvázat
+    és tesztötleteket.
+•   Kérj MI-től kísérlettervet: mely 3-5 paramétert érdemes sweepelni és milyen tartományokban?
+•   Generálj reproducibility checklistet a végső beadás előtti ellenőrzéshez.
+
+Tipikus hibák és gyors ellenőrzések
+• Túl nagy paramétertér (kombinatorikus robbanás) → futási idő elszáll.
+• Pareto-szűrés rossz (dominancia definíció hibás).
+• Ábrák nincsenek felcímkézve (tengely, egység, caption).
+
+Heti leadandó / DoD
+• optimization: sweep + Pareto front kiválasztás.
+• Config dump + reproducibility checklist kipipálva.
+
+Ajánlott olvasás
+• Pareto front fogalma - multi-objektív optimalizálás [30]
+• Sandve et al. - reprodukálhatóság elvek [27]
+Hivatkozások ehhez a héthez: [30][27]
+
+
+
+7.14. hét: Összegzés és projekt bemutatók
+Mérföldkő: M4 Projekt végleges (leadás ezen a héten)
+
+Célok
+• A teljes wsnsim projekt összerendezése, dokumentáció finalizálása.
+• Esettanulmány: 1 jól definiált WSN szcenárió és a választott design pont indoklása (Pareto alapján).
+• Kitekintés: LPWAN (LoRaWAN, NB-IoT, BLE Mesh) és hogyan illeszkedik a WSN design space-be.
+
+Elméleti minimum (amit értened kell)
+Kulcsfogalmak (gyorstalpaló):
+
+•   WSN tervezési elvek
+•   LPWAN kitekintés
+•   MI tanulságok
+•   retro
+
+Tétel / kérdéskörök (ellenőrzőlista):
+
+•   WSN tervezés összefoglaló
+•   LPWAN: LoRaWAN, NB-IoT, BLE Mesh
+•   MI-korszak mérnöki tanulságok
+•   Retrospektív
+
+Szimulátor modul fókusz
+Projektbemutatók; reprodukálhatóság teszt; retro
+
+Heti feladatblokk (15 + 60 + 15 perc)
+15 perc - warm-up: Prezentáció vázlat + evidence lista
+
+60 perc - vibe coding sprint: Demo előkészítés + dokumentáció finalizálás MI-vel
+
+15 perc - review & teszt: Projektbemutató + peer review + retro jegyzet
+
+MI fókusz (vibe coding irányítottan)
+LLM prezentáció vázlat; kritikus kérdések kérése
+
+Ajánlott prompt ötletek (másold be és töltsd ki kontextussal):
+
+•   Készíts prezentáció vázlatot: probléma → modell → kísérletek → eredmények → döntés →
+    tanulságok.
+•   Kérj 'kritikus kérdéseket' a védéshez: hol támadható az eredmény, mit kérdezhet egy reviewer?
+•   Generálj executive summary-t a README elejére (10-12 sor).
+Tipikus hibák és gyors ellenőrzések
+• Nincs egyetlen „fő futtatási parancs”, amit a javító futtathat.
+• A repo nincs letisztázva (félkész notebookok, óriás output fájlok).
+• A prezentáció nem evidence-based (nincs grafikon, nincs szám).
+
+Heti leadandó / DoD
+• M4 leadás: teljes repo + dokumentáció + prezentáció + promptlog.
+• Projektbemutató / demo.
+
+Ajánlott olvasás
+• LoRa Alliance - LoRaWAN specifikáció (kitekintés) [8]
+• Bluetooth SIG - Mesh Profile specifikáció (kitekintés) [9]
+• 3GPP - NB-IoT standardizációs háttér (kitekintés) [32]
+
+Hivatkozások ehhez a héthez: [8][9][32]
+8. Mérföldkövek (M1-M4) és elfogadási kritériumok
+A mérföldkövek célja, hogy ne a félév végén derüljön ki, hogy hiányzik egy alapmodul. Minden
+mérföldkőnél a minimális artefaktokat és az elfogadási kritériumot is megadjuk.
+
+Mérföldkő          Leadás hete     Tartalom                             Artefaktok (minimum)
+M1 Szimulátor      4               Működő eseménykezelő +               Repo + README + 2 unit
+alap                               csatorna + energia modul             teszt + promptlog
+M2 Protokollok     7               MAC + routing modul + első           Kód + 1 kísérlet
+                                   kísérletek                           dokumentálva + promptlog
+M3 Biztonság &     11              Threat checklist + biztonsági        Checklist + modul + teszt +
+AI                                 modul VAGY edge AI modul             promptlog
+M4 Projekt         14              Teljes szimulátor +                  Repo + dokumentáció +
+végleges                           esettanulmány + Pareto-              prezentáció + promptlog
+                                   elemzés
+
+8.1. M1 - Szimulátor alap (leadás: 4. hét)
+Minimum elvárás:
+
+•   Működő eseménykezelő (priority queue) determinisztikus tie-breaker-rel.
+•   Csatorna modul alap PRR(distance) funkcióval + legalább 1 ábra.
+•   Energia modul (legalább TX/RX/IDLE/SLEEP állapotok) + 1 üzemidő számítás/kísérlet.
+•   Legalább 2 unit teszt (scheduler + legalább 1 modell).
+•   README: hogyan futtatható a demo.
+•   PROMPTLOG.md frissítve.
+
+8.2. M2 - Protokollok (leadás: 7. hét)
+Minimum elvárás:
+
+•   MAC: ALOHA + CSMA (legalább backoff) implementáció.
+•   Routing: flooding + sink-fa baseline.
+•   Megbízhatóság: ACK + retry/backoff (legalább link-szint).
+•   Legalább 1 összehasonlító kísérlet dokumentálva (PDR/latency/energy).
+•   PROMPTLOG.md frissítve.
+
+8.3. M3 - Biztonság és/vagy AI (leadás: 11. hét)
+M3-nál választhatsz fókuszt (vagy kombinálhatod):
+A) Biztonság: threat checklist + security overhead + replay védelem.
+B) Edge AI: detektor + kommunikációspórolás mérése.
+C) Mindkettő: kisebb scope, de integrált sztori.
+
+Minimum elvárás:
+
+•   Egy jól definiált fenyegetési modell és legalább 1 abuse-case teszt (replay vagy DoS jelleg).
+•   VAGY: egy egyszerű edge detektor és a trade-off mérése (comm vs FP/FN).
+•   Legalább 1 ábra + rövid interpretáció.
+•   PROMPTLOG.md frissítve.
+
+8.4. M4 - Projekt végleges (leadás: 14. hét)
+Minimum elvárás:
+
+•   A teljes wsnsim moduláris, futtatható, tesztelt (legalább a kritikus részek).
+•   Esettanulmány: 1 szcenárió, 2-3 design alternatíva, Pareto választás és indoklás.
+•   Automatikus sweep + Pareto front kiválasztás (legalább 2 célfüggvény).
+•   Reprodukálhatóság: 1 parancs a fő kísérletre + config dump + seed rögzítés.
+•   Prezentáció (evidence-based): grafikonok, számok, tanulságok.
+•   PROMPTLOG.md lezárva, áttekinthetően.
+
+
+9. Dokumentációs követelmények és sablonok
+
+9.1. README.md - kötelező tartalmi elemek
+A README legyen rövid, de futtatható. Minimum struktúra:
+
+# wsnsim - Wireless Sensor Network Simulator
+
+## Gyors indítás
+```
+python -m venv .venv
+source .venv/bin/activate
+pip install -r requirements.txt
+pytest -q
+python experiments/run_main.py --config configs/main.json
+```
+
+## Mit szimulálunk?
+- Szcenárió rövid leírása (topológia, traffic, cél).
+- Metrikák: PDR, latency, energy/bit, lifetime, ...
+
+## Modulok
+- sim/: DES motor
+- channel/: path loss + PRR
+- energy/: state machine
+- mac/: ALOHA/CSMA
+- routing/: flooding/tree
+- ...
+
+## Reprodukálhatóság
+- Seed kezelése
+- Config dump helye
+- Output fájlok helye (reports/figures)
+
+9.2. PROMPTLOG.md - sablon
+Ajánlott formátum (másold be és töltsd ki):
+# PROMPTLOG
+
+## 2026-03-xx - Week 4 - MAC/CSMA backoff
+
+**Cél:** CSMA/CA backoff implementáció és determinisztikus teszt.
+
+**Kontextus:** wsnsim/models/mac_csma.py, commit: abc123
+
+**Prompt (röviden):**
+- "Írj egy CSMA backoff algoritmust a mi szimulátor API-nkhoz..."
+
+**MI válasz lényege:**
+- javasolt állapotgép (IDLE->SENSE->BACKOFF->TX)
+- paraméterek: cwmin/cwmax, slot_time
+
+**Döntésem / módosításaim:**
+- elfogadtam az állapotgépet, de a backoff RNG-t a központi rng-ből vettem
+(reproducibility)
+- a carrier sense definíciót egyszerűsítettem: 'channel busy' küszöb PRR alapján
+
+**Validálás:**
+- pytest: tests/test_mac_collision.py (seed=123)
+- mini kísérlet: experiments/run_mac_compare.py -> reports/figures/week04_mac.png
+
+9.3. Kísérleti mini riport - sablon (1 oldal)
+A félév során több héten kérünk mini riportot. Legyen rövid (1-2 oldal), de evidence-based.
+
+# Week xx - Kísérlet címe
+
+## Kérdés / hipotézis
+- Mit vársz és miért?
+
+## Szcenárió és beállítások
+- N nodes, deployment, traffic, seed
+- Paraméterek (pl. retry_limit, duty_cycle, TX power)
+
+## Metrikák
+- PDR, latency, energy/bit, ...
+
+## Eredmények (ábrák/táblázatok)
+- 1-2 ábra, tengelyek + egységek + caption
+
+## Interpretáció
+- Mit látsz? Mi a trade-off?
+- Mi lehet a magyarázat? Mi a következő lépés?
+
+## Reprodukálhatóság
+- Futattási parancs
+- Config fájl
+
+9.4. Ábra-minőség és minimum standard
+Minden ábrára vonatkozó minimum:
+•   Cím vagy caption: mit ábrázol az ábra? milyen szcenárióban?
+•   X/Y tengely felirat és mértékegység.
+•   Jelmagyarázat, ha több görbe van.
+•   A seed és a fő paraméterek legyenek a captionben vagy a riportban.
+•   Ne legyen túlzsúfolt: inkább 2 ábra, mint 1 olvashatatlan.
+10. Leadás és értékelés
+
+10.1. Beadási forma
+A beadás alapja egy Git repository. A javítás és peer review akkor hatékony, ha a repo rendezett és
+reprodukálható.
+
+Javasolt beadási csomag (M1-M4 esetén is):
+
+•   Repo link (GitHub/GitLab) vagy exportált ZIP a teljes forráskóddal.
+•   README.md a futtatási parancsokkal.
+•   PROMPTLOG.md (frissítve).
+•   Reports/figures és/vagy rövid riportok a kísérletekről.
+•   Release tag vagy branch név a mérföldkő pillanathoz (pl. m2-protocols).
+
+Minimális elvárás: a javító gépén 1-2 parancsból reprodukálható legyen a fő kísérlet (dependenciák
+telepítése + futtatás).
+
+10.2. Értékelés összefoglaló
+A tárgy értékelése két részből áll: elmélet (kollokvium) és gyakorlat (projekt).
+
+Rész                             Komponens                                               Súly
+Elmélet (kollokvium)             Félévközi ZH (heti open-book teszt)                     30%
+Elmélet (kollokvium)             Vizsga (év végi)                                        70%
+Gyakorlat (gyakorlati jegy)      Labor aktivitás + heti feladatok                        25%
+Gyakorlat (gyakorlati jegy)      Féléves projekt (wsnsim + esettanulmány)                60%
+Gyakorlat (gyakorlati jegy)      Peer review                                             15%
+
+10.3. Gyakorlati értékelés részletesen
+A gyakorlati jegy három komponensből áll:
+
+10.3.1. Labor aktivitás és heti feladatok (25%)
+Elégségeshez (2):
+
+•   Legalább 10/14 héten aktív részvétel (heti feladatblokk teljesítése)
+•   Házi feladatok legalább 50%-ának beadása
+•   Promptlog vezetése
+
+Jeleshez (5):
+
+•   Minden héten aktív részvétel (heti feladatblokk teljesítése)
+•   Minden házi feladat határidőre beadva és működőképes
+•   Részletes, reflektív promptlog
+
+10.3.2. Féléves projekt (60%)
+Elégségeshez (2):
+
+•   Működő szimulátor legalább 4 modullal (eseménykezelő, csatorna, energia, MAC vagy routing)
+•   Futtatható kód Git repositoryban
+•   Alapszintű dokumentáció (README, rövid riport)
+•   Promptlog beadva
+
+Jeleshez (5):
+
+•   Teljes, moduláris szimulátor minden elvárt komponenssel
+•   Átfogó esettanulmány Pareto-elemzéssel és érzékenységvizsgálattal
+•   Kiváló minőségű dokumentáció és részletes promptlog
+•   Reprodukálható futtatás (seed, konfiguráció, verzió rögzítve)
+•   Igényes vizualizáció és szakszerű következtetések
+
+A projekt értékelésénél a következő dimenziókat nézzük (rubrika jelleggel):
+
+Dimenzió                   Mit keresünk?
+Helyesség és modellek      A modulok azt csinálják, amit ígérnek; trendek reálisak (pl. távolság nő ->
+                           PRR csökken).
+Kísérletezés és            Van hipotézis, mérőszám, grafikon és értelmezés; nem csak 'lefutott'.
+evidence
+Kódminőség                 Moduláris szerkezet, olvasható kód (PEP 8) [13], elnevezések, minimális
+                           duplikáció.
+Tesztelhetőség             Pytest tesztek kritikus részekre [11], determinisztikus seed [12].
+Dokumentáció               README futtatható; riportok rövidek, de érthetők; ábrák felcímkézve.
+MI-használat               PROMPTLOG informatív; látszik a mérnöki döntés és validálás.
+transzparenciája
+
+10.3.3. Peer review (15%)
+Elégségeshez (2):
+
+•   Részvétel a review folyamatban
+•   Értékelhető, érdemi visszajelzés adása
+
+Jeleshez (5):
+
+•   Konstruktív, részletes és szakmailag megalapozott review
+•   Reprodukálhatóság ellenőrzése elvégezve (társ kódjának futtatása)
+•   Javítási javaslatok megfogalmazása
+
+Tipp peer review-hoz: futtasd le a társad projektjét seed-del; nézd meg, hogy a README alapján
+reprodukálható-e; írj konkrét javaslatot (pl. 'itt hiányzik a config dump', 'nincs teszt a retry timeout-ra').
+
+10.4. Érdemjegy számítás (összesített százalék)
+Az összpontszám alapján az érdemjegy:
+
+Pontszám                   Érdemjegy
+0-49%                      elégtelen (1)
+50-62%                     elégséges (2)
+63-74%    közepes (3)
+75-86%    jó (4)
+87-100%   jeles (5)
+11. Források és hivatkozások
+A hivatkozások számozása a szövegben használt [n] jelölésnek felel meg.
+
+[1] K. Sohraby, D. Minoli, T. Znati: Wireless Sensor Networks: Technology, Protocols, and Applications.
+Wiley, 2007.
+
+[2] W. Dargie, C. Poellabauer: Fundamentals of Wireless Sensor Networks: Theory and Practice. Wiley,
+2010.
+
+[3] I. F. Akyildiz, M. C. Vuran: Wireless Sensor Networks. Wiley, 2010.
+
+[4] H. B. McMahan et al.: Communication-Efficient Learning of Deep Networks from Decentralized Data.
+AISTATS 2017. Preprint: https://arxiv.org/abs/1602.05629
+
+[5] IETF RFC 6550: RPL - IPv6 Routing Protocol for Low-Power and Lossy Networks (Winter et al., 2012):
+https://datatracker.ietf.org/doc/html/rfc6550
+
+[6] IETF RFC 6282: Compression Format for IPv6 Datagrams over IEEE 802.15.4-Based Networks (Hui,
+Thubert, 2011): https://datatracker.ietf.org/doc/html/rfc6282
+
+[7] IETF RFC 7252: The Constrained Application Protocol (CoAP) (Shelby, Hartke, Bormann, 2014):
+https://datatracker.ietf.org/doc/html/rfc7252
+
+[8] LoRa Alliance: LoRaWAN Specification v1.1 (Published Sep 15, 2023): https://resources.lora-
+alliance.org/technical-specifications/lorawan-specification-v1-1
+
+[9] Bluetooth SIG: Bluetooth Mesh Profile Specification (pl. Mesh Profile 1.0.1):
+https://www.bluetooth.com/specifications/specs/mesh-profile-1-0-1/
+
+[10] SimPy Documentation (process-based discrete-event simulation):
+https://simpy.readthedocs.io/en/latest/
+
+[11] pytest Documentation (pl. parametrizáció): https://docs.pytest.org/en/stable/how-
+to/parametrize.html
+
+[12] NumPy Random Generator (default_rng, Generator):
+https://numpy.org/doc/stable/reference/random/generator.html
+
+[13] PEP 8 - Style Guide for Python Code: https://peps.python.org/pep-0008/
+
+[14] N. Abramson: The ALOHA System - Another Alternative for Computer Communications. AFIPS
+Conference Proceedings, 1970. PDF (University of Hawaii mirror):
+https://www.eng.hawaii.edu/Tutor/NET/ALOHA-1.pdf
+
+[15] L. Kleinrock, F. A. Tobagi: Packet Switching in Radio Channels: Part II - The Hidden Terminal Problem
+in Carrier Sense Multiple-Access and the Busy Tone Solution. IEEE Trans. Communications, 1975. PDF
+mirror: https://www.networksorcery.com/enp/reference/MCAMIT/tobagi2.pdf
+[16] S. Y. Seidel, T. S. Rappaport: 914 MHz Path Loss Prediction Models for Indoor Wireless
+Communications in Multifloored Buildings. IEEE Trans. Antennas and Propagation, 1992.
+
+[17] W. R. Heinzelman, A. Chandrakasan, H. Balakrishnan: Energy-Efficient Communication Protocol for
+Wireless Microsensor Networks (LEACH). Proc. HICSS, 2000.
+
+[18] S. Ganeriwal, R. Kumar, M. B. Srivastava: Timing-sync Protocol for Sensor Networks (TPSN). Proc.
+SenSys, 2003.
+
+[19] M. Maróti et al.: The Flooding Time Synchronization Protocol (FTSP). Proc. SenSys, 2004.
+
+[20] C. Karlof, D. Wagner: Secure Routing in Wireless Sensor Networks: Attacks and Countermeasures.
+Ad Hoc Networks, 2003.
+
+[21] J. R. Douceur: The Sybil Attack. Proc. IPTPS, 2002.
+
+[22] A. Perrig et al.: SPINS: Security Protocols for Sensor Networks. Wireless Networks, 2002.
+
+[23] A. D. Wood, J. A. Stankovic: Denial of Service in Sensor Networks. IEEE Computer, 2002.
+
+[24] OpenAI: Best practices for prompt engineering with the OpenAI API:
+https://help.openai.com/en/articles/6654000-best-practices-for-prompt-engineering-with-openai-api
+
+[25] GitHub Docs: Responsible use of GitHub Copilot (pl. Copilot Chat):
+https://docs.github.com/en/copilot/responsible-use/chat-in-github
+
+[26] Anthropic Claude Docs: Prompt engineering / prompting tools:
+https://platform.claude.com/docs/en/build-with-claude/prompt-engineering/prompting-tools
+
+[27] G. K. Sandve et al.: Ten Simple Rules for Reproducible Computational Research. PLoS Comput Biol,
+2013. DOI: https://doi.org/10.1371/journal.pcbi.1003285
+
+[28] TensorFlow: TensorFlow Lite for Microcontrollers (tflite-micro) GitHub repository:
+https://github.com/tensorflow/tflite-micro
+
+[29] Google AI Edge: LiteRT for Microcontrollers overview:
+https://ai.google.dev/edge/litert/microcontrollers/overview
+
+[30] Pareto front (definíció, multi-objektív optimalizálás): https://en.wikipedia.org/wiki/Pareto_front
+
+[31] NXP Application Note: Calculating 802.15.4 Data Rates (JN-AN-1035, 2020):
+https://www.nxp.com/docs/en/application-note/JN-AN-1035.pdf
+
+[32] 3GPP News: Standardization of NB-IOT completed (Jun 2016): https://www.3gpp.org/news-
+events/3gpp-news/nb-iot-complete
+
