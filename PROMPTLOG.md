@@ -212,3 +212,107 @@ hivatkozott, (3) nem volt futtathatao kiserlet kimenettel.
 - [x] `reports/figures/hello_sim_events.png` generalodik (150 dpi, 2 panel) ✅
 - [x] Reprodukalhatosag: ketszeri futatas azonos tablazatot ad (seed=42) ✅
 - [x] `wsnsim.metrics` importalhato, `StatsCollector` elerheto ✅
+
+---
+
+## 2026-03-07 7.2. hét: Radios csatorna modellek
+
+### 1. LogDistanceChannel, Packet, prr_curve
+
+**Cel:**
+A wsnsim.models csatornamodul implementalasa: log-distance + log-normal shadowing modell,
+BER->PER->PRR lanc, Packet dataclass, PRR(d) kisérleti abra.
+
+**Kontextus:**
+A 7.1. heti motor (sim modul) kész; a 7.2. het a fizikai csatornaretelget adja hozza.
+wsnsim/models/**init**.py ures vazként létezett.
+
+**Prompt:**
+
+> Implementald a 7.2. heti feladatot: LogDistanceChannel (log-distance + log-normal shadowing,
+> BER->PER->PRR BPSK-AWGN kozelitessel), Packet dataclass, tests/test_channel.py (monotonitas,
+> referencia-pont, kezi szamitas 2 ponton, seed reprodukalhatosag), experiments/prr_curve.py
+> (PRR(d) gorbe 3 sigma ertekre, link budget tablazat stdoutra, abra mentese).
+
+**MI valasz osszefoglaloja:**
+
+- `wsnsim/models/channel.py` — `LogDistanceChannel` dataclass:
+  `path_loss_db()`, `rssi_dbm()`, `snr_db()`, `ber()`, `per()`, `prr()`,
+  `prr_mean()` (Monte-Carlo), `link_budget()`.
+- `wsnsim/models/packet.py` — `Packet` dataclass: `size_bits`, `delivered`,
+  `latency_us` property-k; `lost` flag felulirja a `delivered`-et.
+- `wsnsim/models/__init__.py` — re-export.
+- `tests/test_channel.py` — 18 unit teszt: path loss ref-pont, monotonitas,
+  kezi szamitas (10 m, 50 m), RSSI, PRR tartomany, shadowing seed-eleg.
+- `experiments/prr_curve.py` — PRR(d) gorbe sigma={0,3,6} dB; link budget
+  tablazat kezi validalassal; `reports/figures/prr_curve.png`.
+
+**Dontesemet:**
+
+- Elfogadva: BPSK-AWGN BER=0.5\*erfc(sqrt(SNR_lin)) — WSN irodalomban bevett
+  egyszerusites (o(erfc) numerikusan stabil, scipy nelkul is).
+- Elfogadva: d < d0 kliппeles d0-ra (nem ad negatív path loss-t kozeli esetben).
+- Elfogadva: prr_mean() Monte-Carlo (500 minta) az atlagos PRR simaabrakhoz —
+  a deterministikus sigma=0 ag megtartva gyors tesztekre.
+- Elfogadva: Packet.lost flag felulirja delivered-et — realisztikusabb
+  csatorna-integracio keszitese elo.
+
+**Validalas:**
+
+- [x] `pytest tests/ -v --tb=short` — **35 passed**, 0 failed ✅ 2026-03-07
+- [x] Kezi szamitas: PL(10 m) = 82.00 dB, PL(50 m) = 100.87 dB ✅ (stdout tablazat)
+- [x] `python experiments/prr_curve.py` — link budget tablazat + abra ✅
+- [x] `reports/figures/prr_curve.png` generalodik (3 sigma gorbe) ✅
+- [x] Shadowing reprodukalhatosag: azonos seed = azonos PRR-sorozat ✅
+- [x] `wsnsim.models` importalhato, `LogDistanceChannel` es `Packet` elerheto ✅
+
+---
+
+## 2026-03-07 7.3. hét: Energia és üzemidő
+
+### 1. EnergyModel, allapotgep, duty-cycle kiserlet
+
+**Cel:**
+Az energia modul implementalasa: EnergyState enum (TX/RX/IDLE/SLEEP), EnergyModel allapotgep
+fogyasztas-intergralasal, negatív energia guard, uezemido-becsles, duty-cycle kiserlet abraval.
+
+**Kontextus:**
+A 7.2. heti csatornamodul kesz. A 7.3. het az energiareteget adja hozza, amely a kesobb
+implementalando MAC es routing modulok szamara biztositja a fogyasztaskovetést.
+
+**Prompt:**
+
+> Implementald a 7.3. heti feladatot: EnergyState enum (TX/RX/IDLE/SLEEP), EnergyModel
+> allapotgep (transition, flush, remedaining_j soha nem negativ, lifetime_estimate_s),
+> tests/test_energy.py (integracio kezi szamitassal, duty-cycle trend, eletartam-formula),
+> experiments/duty_cycle_lifetime.py (duty-cycle vs eletartam abra + stdout tablazat).
+
+**MI valasz osszefoglaloja:**
+
+- `wsnsim/models/energy.py` — `EnergyState` enum + `EnergyModel` dataclass:
+  `transition()`, `flush()`, `consumed_j`, `remaining_j`, `is_depleted`,
+  `soc_percent`, `average_power_w()`, `lifetime_estimate_s()`, `summary()`.
+  CC2420-alapu DEFAULT_POWER_MW: TX=52.2 mW, RX=56.4 mW, IDLE=3 mW, SLEEP=0.003 mW.
+- `wsnsim/models/__init__.py` — re-export `EnergyModel`, `EnergyState`.
+- `tests/test_energy.py` — 16 unit teszt: kezi energiaintegracio (1 s TX = 0.0522 J),
+  negativ energia guard, duty-cycle monotonicas, eletartam keplet, idovisszalep-tiltalom, flush.
+- `experiments/duty_cycle_lifetime.py` — analitikus DC vs P es DC vs elettartam gorbe;
+  stdout tablazat kezi validalassal; `reports/figures/duty_cycle_lifetime.png`.
+
+**Dontesemet:**
+
+- Elfogadva: energia integracio µs → s konverzio (delta_us × 1e-6) — konzisztens a szimulatorral.
+- Elfogadva: negatív energia klippeles (nem RuntimeError) — folytonos szimulacio utan is fut a kod,
+  az is_depleted flag jelzi az allapotot.
+- Elfogadva: duty-cycle kiserletben analitikus szamitas (nem Monte-Carlo) — gyors, determinisztikus.
+- Elfogadva: lifetime_estimate_s(avg_power_w=None) az eddigi merésből becsul —
+  kulsőleg is megadhato explicit ertekkel (kiserletekhez).
+
+**Validalas:**
+
+- [x] `pytest tests/ -v --tb=short` — **51 passed**, 0 failed ✅ 2026-03-07
+- [x] Kezi ellenorzés: 1 s TX → consumed_j = 0.0522 J ✅
+- [x] Kezi ellenorzés: DC=1% → P = 0.01×54.3 + 0.99×0.003 = 0.5460 mW ✅
+- [x] `python experiments/duty_cycle_lifetime.py` — tablazat + abra ✅
+- [x] `reports/figures/duty_cycle_lifetime.png` (2 panel: avg P + eletartam log skala) ✅
+- [x] `wsnsim.models` importalhato, `EnergyModel` es `EnergyState` elerheto ✅
