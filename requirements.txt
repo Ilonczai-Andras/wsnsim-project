@@ -1,0 +1,18 @@
+# wsnsim - Wireless Sensor Network Simulator
+# Futtatási és fejlesztési függőségek
+
+# Alap tudományos csomag
+numpy>=1.26
+
+# Gráf- és hálózatmodellezés
+networkx>=3.3
+
+# Vizualizáció
+matplotlib>=3.8
+
+# Tesztelési keretrendszer
+pytest>=8.1
+pytest-cov>=5.0
+
+# (Opcionális) Jupyter notebook támogatás
+# jupyter>=1.0
