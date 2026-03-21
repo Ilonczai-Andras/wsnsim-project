@@ -379,3 +379,39 @@ weight attribútumot is kap (1/d), ami a következő heti routing modulhoz előr
   eports/figures/topology_viz.png
 - Manuális ellenőrzés: Random: 2 komp., sink elér. 95%; Grid: összefüggő, 100%; Cluster: összefüggő, 100%
 - DoD: topology modul (3 stratégia) + összefüggőség teszt + 1 ábra seed paraméterekkel ✅
+
+---
+
+### 2026-03-21 — 7.6. hét: Routing és adatgyűjtés
+
+**Cél:**
+Két routing stratégia implementálása a WSN szimulátorba: (1) flooding TTL-lel és seen-cache-szel a végtelen hurkok elkerülésére, (2) ETX-alapú statikus sink-fa Dijkstra-algoritmussal.
+
+**Kontextus:**
+A 7.1–7.5. hetek elkészültek (DES motor, csatorna, energia, MAC, topológia), 112/112 teszt zöld. A wsnsim/models/ csomagban channel.py, energy.py, mac.py és packet.py volt jelen. A uild_neighbor_graph() már distance és weight él-attribútumokat ad, amelyekre a routing épít. A spec (7.6. hét) flooding + sink-fa routing implementációt, összehasonlító kísérletet és ábrát írt elő.
+
+**Prompt:**
+
+> Kezdhetjük, az általad ajánlott struktúra jó lesz. Amennyiben valami hiba alakul ki javítjuk majd.
+
+**MI válasz összefoglalója:**
+
+- wsnsim/models/routing.py — RoutedPacket dataclass (packet_id, src, dst, 	tl, hops, delivered, dropped, drop_reason; hop_count property), FloodRouter (BFS + seen-cache set[tuple[int,int]], inject(), pdr(), vg_hop_count(), eset()), _etx() segédfüggvény (1/PRR), SinkTreeRouter (Dijkstra ETX-súlyokkal a sinkből visszafelé, path_to_sink(), oute(), parent_of(), etx_to_sink(), ll_reachable(), 	ree_edges()).
+- wsnsim/models/__init__.py — FloodRouter, RoutedPacket, SinkTreeRouter exportálva.
+- 	ests/test_routing.py — 29 unit teszt 7 osztályban: TestRoutedPacket, TestFloodRouterBasic, TestFloodRouterTTL, TestFloodRouterCache, TestSinkTreeBasic, TestSinkTreeETX, TestSinkTreeIsolated.
+- experiments/routing_comparison.py — 5×5 rácstopológia (25 csomópont, sink=0), Flooding vs Sink-fa összehasonlítás; PDR / átlagos hop-count táblázat stdout-ra; 4-panel ábra (PDR sávdiagram, hop-count sávdiagram, hop-count hisztogram, ETX-alapú sink-fa topológia).
+
+**Döntésem:**
+
+- Elfogadva: a sink-fa statikus (nincs dinamikus újraszámolás link-hiba esetén) — dokumentált korlátként kezelve, a következő heti ARQ modul kezeli a link-szintű megbízhatóságot.
+- Elfogadva: ETX = 1/PRR, ha van prr él-attribútum; egyébként exp(-d/scale) heurisztika.
+- Elfogadva: FloodRouter seen-cache (node_id, packet_id) párokkal — végtelen hurkot és duplikált kézbesítést egyaránt megakadályoz.
+
+**Validálás:**
+
+- [x] pytest tests/ --tb=short → **141/141 teszt zöld** (112 → 141, +29 routing teszt) ✅
+- [x] outing.py coverage: **95%** ✅
+- [x] python experiments/routing_comparison.py → PDR=1.000 mindkét stratégiánál, átlagos hop-count=4.17 ✅
+- [x] eports/figures/routing_comparison.png generálva (4 panel, ETX hőtérkép) ✅
+- [x] Izolált csomópont drop_reason="no_route" visszaadás tesztelve ✅
+- [x] TTL lejárat drop_reason="TTL=0" visszaadás tesztelve ✅
