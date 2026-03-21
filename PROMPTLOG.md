@@ -317,7 +317,7 @@ implementalando MAC es routing modulok szamara biztositja a fogyasztaskovetést.
 - [X] `reports/figures/duty_cycle_lifetime.png` (2 panel: avg P + eletartam log skala) ✅
 - [X] `wsnsim.models` importalhato, `EnergyModel` es `EnergyState` elerheto ✅
 
-### 2026-03-14 — 7.4. hét: MAC protokollok 
+### 2026-03-14 — 7.4. hét: MAC protokollok
 
 ### Aloha + CSMA/BEB
 
@@ -344,3 +344,38 @@ Az egész megközelítést elfogadtam. A `busy_until()` iteratív keresése (lá
 - `python experiments/mac_comparison.py` → táblázat és `reports/figures/mac_comparison.png` generálva
 - Manuális ellenőrzés: ALOHA PDR G=1-nél ≈40%, G≥7-nél 0% (klasszikus görbe); CSMA PDR minden G-nél 100% (szekvenciális feldolgozásban mindig ütközésmentes)
 - DoD ✅: mac modul v1, ütközésteszt seed-del, összehasonlító ábra
+
+### 2026-03-21 — 7.5. hét: Topológia és kapcsolatgráfok
+
+**Cél:**
+Topológia generátor modul elkészítése három deployment stratégiával (random, grid, cluster),
+hatótáv alapú szomszédsági gráf építéssel és összefüggőség vizsgálattal.
+
+**Kontextus:**
+A 7.1–7.4. hetek elkészültek (DES motor, csatorna, energia, MAC), 76/76 teszt zöld.
+A wsnsim/utils/ csomag üres volt. A spec (7.5. hét) legalább 2 deployment stratégiát,
+szomszédsági gráfot, összefüggőség tesztet és 1 ábrát írt elő seed dokumentálással.
+
+**Prompt:**
+
+> Jó akkor folytassuk a 7.5. hét: Topológia és kapcsolatgráfok feladatot.
+> Kezdhetjük, az általad ajánlott struktúra jó lesz.
+
+**MI válasz összefoglalója:**
+Az AI létrehozta a wsnsim/utils/topology.py fájlt Node dataclass-szal és három deployment
+függvénnyel (random_deployment, grid_deployment, cluster_deployment), hatótáv-alapú
+uild_neighbor_graph() NetworkX-integrációval és connectivity_stats() metrika-függvénnyel.
+35 unit tesztet és egy 3-panel vizualizációs kísérleti scriptet is elkészített.
+
+**Döntésem:**
+Teljes egészében elfogadtam. A busy_until() iteratív megközelítés mintájára a build_neighbor_graph()
+weight attribútumot is kap (1/d), ami a következő heti routing modulhoz előremutat.
+
+**Validálás:**
+
+- pytest tests/ --tb=short → **112/112 teszt zöld** (76 → 112, +36 topológia teszt)
+- opology.py coverage: **97%**
+- python experiments/topology_viz.py → konzol táblázat +
+  eports/figures/topology_viz.png
+- Manuális ellenőrzés: Random: 2 komp., sink elér. 95%; Grid: összefüggő, 100%; Cluster: összefüggő, 100%
+- DoD: topology modul (3 stratégia) + összefüggőség teszt + 1 ábra seed paraméterekkel ✅
