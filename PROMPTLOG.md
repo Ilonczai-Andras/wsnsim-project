@@ -66,10 +66,10 @@ Az AI létrehozta a teljes mappastruktúrát `__init__.py` fájlokkal, a `requir
 
 **Validálás:**
 
-- [x] `pip install -e .[dev]` lefut hiba nélkül — ✅ 2026-03-07 (javítás: `build-backend` helyesbítve `setuptools.build_meta`-ra)
-- [x] `pytest` lefut importhibák nélkül — ✅ 2026-03-07, 2 passed, 100% coverage (`tests/test_smoke.py` hozzáadva)
-- [x] `python -c "import wsnsim; print(wsnsim.__version__)"` visszaadja `0.1.0`-t — ✅ 2026-03-07
-- [x] Mappastruktúra egyezik a specifikációval (`Get-ChildItem -Recurse`) — ✅ 2026-03-07, mind az 5 alcsomag jelen van
+- [X] `pip install -e .[dev]` lefut hiba nélkül — ✅ 2026-03-07 (javítás: `build-backend` helyesbítve `setuptools.build_meta`-ra)
+- [X] `pytest` lefut importhibák nélkül — ✅ 2026-03-07, 2 passed, 100% coverage (`tests/test_smoke.py` hozzáadva)
+- [X] `python -c "import wsnsim; print(wsnsim.__version__)"` visszaadja `0.1.0`-t — ✅ 2026-03-07
+- [X] Mappastruktúra egyezik a specifikációval (`Get-ChildItem -Recurse`) — ✅ 2026-03-07, mind az 5 alcsomag jelen van
 
 ---
 
@@ -93,9 +93,9 @@ Elfogadva teljes egészében — standard Python projekt `.gitignore` sablon, pr
 
 **Validálás:**
 
-- [x] `.gitignore` fájl létezik a repo gyökerében — ✅ 2026-03-07
-- [x] A `.venv/` mappa szerepel benne — ✅
-- [x] `reports/figures/` és `experiments/` generált outputjai ki vannak zárva — ✅
+- [X] `.gitignore` fájl létezik a repo gyökerében — ✅ 2026-03-07
+- [X] A `.venv/` mappa szerepel benne — ✅
+- [X] `reports/figures/` és `experiments/` generált outputjai ki vannak zárva — ✅
 
 ---
 
@@ -119,10 +119,10 @@ Elfogadva — minimális, de értékes alaptesztek. Biztosítják, hogy egy csom
 
 **Validálás:**
 
-- [x] `pytest` 2 tesztet gyűjt és futtat — ✅ 2026-03-07, `2 passed in 0.09s`
-- [x] Coverage-figyelmeztetés eltűnt — ✅
-- [x] `wsnsim/__init__.py` lefedettsége 100% — ✅
-- [x] `python -c "import wsnsim; print(wsnsim.__version__)"` → `0.1.0` — ✅
+- [X] `pytest` 2 tesztet gyűjt és futtat — ✅ 2026-03-07, `2 passed in 0.09s`
+- [X] Coverage-figyelmeztetés eltűnt — ✅
+- [X] `wsnsim/__init__.py` lefedettsége 100% — ✅
+- [X] `python -c "import wsnsim; print(wsnsim.__version__)"` → `0.1.0` — ✅
 
 ---
 
@@ -162,13 +162,13 @@ A `wsnsim/sim/__init__.py` üres vázként létezett. A cél egy heapq-alapú es
 
 **Validálás:**
 
-- [x] `pytest tests/ -v --tb=short` — **17 passed**, 0 failed ✅ 2026-03-07
-- [x] Esemény-időrend (`TestEventOrdering`): 3 teszt ✅
-- [x] Tie-breaker prioritás (`TestPriorityTieBreaker`): 3 teszt (negatív priority, FIFO) ✅
-- [x] SimClock viselkedés (`TestSimClock`): 5 teszt (ValueError visszalépésre, negatív init) ✅
-- [x] `run_until()` határfeltételek (`TestRunUntil`): 2 teszt ✅
-- [x] Determinizmus (`TestDeterminism`): 2 teszt (azonos seed = azonos kimenet) ✅
-- [x] Coverage: `sim/__init__.py` 100%, `scheduler.py` 90% ✅
+- [X] `pytest tests/ -v --tb=short` — **17 passed**, 0 failed ✅ 2026-03-07
+- [X] Esemény-időrend (`TestEventOrdering`): 3 teszt ✅
+- [X] Tie-breaker prioritás (`TestPriorityTieBreaker`): 3 teszt (negatív priority, FIFO) ✅
+- [X] SimClock viselkedés (`TestSimClock`): 5 teszt (ValueError visszalépésre, negatív init) ✅
+- [X] `run_until()` határfeltételek (`TestRunUntil`): 2 teszt ✅
+- [X] Determinizmus (`TestDeterminism`): 2 teszt (azonos seed = azonos kimenet) ✅
+- [X] Coverage: `sim/__init__.py` 100%, `scheduler.py` 90% ✅
 
 ---
 
@@ -207,11 +207,11 @@ hivatkozott, (3) nem volt futtathatao kiserlet kimenettel.
 
 **Validalas:**
 
-- [x] `pytest tests/ -v --tb=short` - **17 passed**, 0 failed ✅ 2026-03-07
-- [x] `python experiments/hello_sim.py` - 35 esemeny, tablazat stdout-ra, abra mentve ✅
-- [x] `reports/figures/hello_sim_events.png` generalodik (150 dpi, 2 panel) ✅
-- [x] Reprodukalhatosag: ketszeri futatas azonos tablazatot ad (seed=42) ✅
-- [x] `wsnsim.metrics` importalhato, `StatsCollector` elerheto ✅
+- [X] `pytest tests/ -v --tb=short` - **17 passed**, 0 failed ✅ 2026-03-07
+- [X] `python experiments/hello_sim.py` - 35 esemeny, tablazat stdout-ra, abra mentve ✅
+- [X] `reports/figures/hello_sim_events.png` generalodik (150 dpi, 2 panel) ✅
+- [X] Reprodukalhatosag: ketszeri futatas azonos tablazatot ad (seed=42) ✅
+- [X] `wsnsim.metrics` importalhato, `StatsCollector` elerheto ✅
 
 ---
 
@@ -259,12 +259,12 @@ wsnsim/models/**init**.py ures vazként létezett.
 
 **Validalas:**
 
-- [x] `pytest tests/ -v --tb=short` — **35 passed**, 0 failed ✅ 2026-03-07
-- [x] Kezi szamitas: PL(10 m) = 82.00 dB, PL(50 m) = 100.87 dB ✅ (stdout tablazat)
-- [x] `python experiments/prr_curve.py` — link budget tablazat + abra ✅
-- [x] `reports/figures/prr_curve.png` generalodik (3 sigma gorbe) ✅
-- [x] Shadowing reprodukalhatosag: azonos seed = azonos PRR-sorozat ✅
-- [x] `wsnsim.models` importalhato, `LogDistanceChannel` es `Packet` elerheto ✅
+- [X] `pytest tests/ -v --tb=short` — **35 passed**, 0 failed ✅ 2026-03-07
+- [X] Kezi szamitas: PL(10 m) = 82.00 dB, PL(50 m) = 100.87 dB ✅ (stdout tablazat)
+- [X] `python experiments/prr_curve.py` — link budget tablazat + abra ✅
+- [X] `reports/figures/prr_curve.png` generalodik (3 sigma gorbe) ✅
+- [X] Shadowing reprodukalhatosag: azonos seed = azonos PRR-sorozat ✅
+- [X] `wsnsim.models` importalhato, `LogDistanceChannel` es `Packet` elerheto ✅
 
 ---
 
@@ -310,9 +310,37 @@ implementalando MAC es routing modulok szamara biztositja a fogyasztaskovetést.
 
 **Validalas:**
 
-- [x] `pytest tests/ -v --tb=short` — **51 passed**, 0 failed ✅ 2026-03-07
-- [x] Kezi ellenorzés: 1 s TX → consumed_j = 0.0522 J ✅
-- [x] Kezi ellenorzés: DC=1% → P = 0.01×54.3 + 0.99×0.003 = 0.5460 mW ✅
-- [x] `python experiments/duty_cycle_lifetime.py` — tablazat + abra ✅
-- [x] `reports/figures/duty_cycle_lifetime.png` (2 panel: avg P + eletartam log skala) ✅
-- [x] `wsnsim.models` importalhato, `EnergyModel` es `EnergyState` elerheto ✅
+- [X] `pytest tests/ -v --tb=short` — **51 passed**, 0 failed ✅ 2026-03-07
+- [X] Kezi ellenorzés: 1 s TX → consumed_j = 0.0522 J ✅
+- [X] Kezi ellenorzés: DC=1% → P = 0.01×54.3 + 0.99×0.003 = 0.5460 mW ✅
+- [X] `python experiments/duty_cycle_lifetime.py` — tablazat + abra ✅
+- [X] `reports/figures/duty_cycle_lifetime.png` (2 panel: avg P + eletartam log skala) ✅
+- [X] `wsnsim.models` importalhato, `EnergyModel` es `EnergyState` elerheto ✅
+
+### 2026-03-14 — 7.4. hét: MAC protokollok 
+
+### Aloha + CSMA/BEB
+
+**Cél:**
+A MAC réteg v1 implementálása: Pure ALOHA és CSMA bináris exponenciális backoff-fal, osztott közeg modellel, ütközés-detekcióval és összehasonlító kísérlettel.
+
+**Kontextus:**
+A 7.1–7.3. hetek (DES motor, csatornamodell, energiamodell) már elkészültek, 51/51 teszt zöld. A `wsnsim/models/` csomagban `channel.py`, `energy.py` és `packet.py` volt jelen. A spec (WSN_Gyakorlati_Utmutato_wsnsim_v1_1.txt, 7.4. hét szekció) ALOHA + CSMA backoff implementációt, determinisztikus ütközéstesztet és egy összehasonlító kísérletet írt elő.
+
+**Prompt:**
+
+> jó akkor folytassuk a 7.4. hét: MAC protokollok-el
+
+**MI válasz összefoglalója:**
+Az AI elolvasta a spec releváns részét, majd létrehozta a `wsnsim/models/mac.py` fájlt három fő komponenssel: `Medium` (osztott közeg, retroaktív ütközés-jelöléssel és iteratív `busy_until()`-lal), `ALOHAMac` (azonnali adás) és `CSMAMac` (carrier-sense + BEB). Mellé 25 unit tesztet (`tests/test_mac.py`) és egy kísérleti scriptet (`experiments/mac_comparison.py`) készített, amely G vs. S és G vs. PDR görbéket ábrázol, beleértve az analitikus ALOHA `G·e^{-2G}` referenciagörbét.
+
+**Döntésem:**
+Az egész megközelítést elfogadtam. A `busy_until()` iteratív keresése (láncoltan egymás mögé szervezett adások helyes kezelése) és a `unittest.mock.patch`-alapú kényszeres ütközésteszt (rejtett állomás szimulálása) különösen jó döntésnek bizonyult. Az eredeti `busy_until()` egy-lépéses verzióját az AI maga javította ki, miután az első futtatás feltárt egy hibát a háromcsomópontos szeriális tesztben.
+
+**Validálás:**
+
+- `pytest tests/ -v --tb=short` → **76/76 teszt zöld** (+25 MAC teszt, 51-ről)
+- `mac.py` coverage: **97%**
+- `python experiments/mac_comparison.py` → táblázat és `reports/figures/mac_comparison.png` generálva
+- Manuális ellenőrzés: ALOHA PDR G=1-nél ≈40%, G≥7-nél 0% (klasszikus görbe); CSMA PDR minden G-nél 100% (szekvenciális feldolgozásban mindig ütközésmentes)
+- DoD ✅: mac modul v1, ütközésteszt seed-del, összehasonlító ábra
