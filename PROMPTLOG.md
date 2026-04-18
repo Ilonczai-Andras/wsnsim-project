@@ -396,7 +396,9 @@ A 7.1–7.5. hetek elkészültek (DES motor, csatorna, energia, MAC, topológia)
 
 **MI válasz összefoglalója:**
 
-- wsnsim/models/routing.py — RoutedPacket dataclass (packet_id, src, dst, 	tl, hops, delivered, dropped, drop_reason; hop_count property), FloodRouter (BFS + seen-cache set[tuple[int,int]], inject(), pdr(), vg_hop_count(), eset()), _etx() segédfüggvény (1/PRR), SinkTreeRouter (Dijkstra ETX-súlyokkal a sinkből visszafelé, path_to_sink(), oute(), parent_of(), etx_to_sink(), ll_reachable(), 	ree_edges()).
+- wsnsim/models/routing.py — RoutedPacket dataclass (packet_id, src, dst, 	tl, hops, delivered, dropped, drop_reason; hop_count property), FloodRouter (BFS + seen-cache set[tuple[int,int]], inject(), pdr(), vg_hop_count(), 
+eset()), _etx() segédfüggvény (1/PRR), SinkTreeRouter (Dijkstra ETX-súlyokkal a sinkből visszafelé, path_to_sink(), 
+oute(), parent_of(), etx_to_sink(), ll_reachable(), 	ree_edges()).
 - wsnsim/models/__init__.py — FloodRouter, RoutedPacket, SinkTreeRouter exportálva.
 - 	ests/test_routing.py — 29 unit teszt 7 osztályban: TestRoutedPacket, TestFloodRouterBasic, TestFloodRouterTTL, TestFloodRouterCache, TestSinkTreeBasic, TestSinkTreeETX, TestSinkTreeIsolated.
 - experiments/routing_comparison.py — 5×5 rácstopológia (25 csomópont, sink=0), Flooding vs Sink-fa összehasonlítás; PDR / átlagos hop-count táblázat stdout-ra; 4-panel ábra (PDR sávdiagram, hop-count sávdiagram, hop-count hisztogram, ETX-alapú sink-fa topológia).
@@ -410,8 +412,49 @@ A 7.1–7.5. hetek elkészültek (DES motor, csatorna, energia, MAC, topológia)
 **Validálás:**
 
 - [x] pytest tests/ --tb=short → **141/141 teszt zöld** (112 → 141, +29 routing teszt) ✅
-- [x] outing.py coverage: **95%** ✅
+- [x] 
+outing.py coverage: **95%** ✅
 - [x] python experiments/routing_comparison.py → PDR=1.000 mindkét stratégiánál, átlagos hop-count=4.17 ✅
-- [x] eports/figures/routing_comparison.png generálva (4 panel, ETX hőtérkép) ✅
+- [x] 
+eports/figures/routing_comparison.png generálva (4 panel, ETX hőtérkép) ✅
 - [x] Izolált csomópont drop_reason="no_route" visszaadás tesztelve ✅
 - [x] TTL lejárat drop_reason="TTL=0" visszaadás tesztelve ✅
+
+---
+
+### 2026-04-18 — 7.7. hét: Megbízhatóság és ARQ
+
+**Cél:**
+Stop-and-Wait ARQ modell implementálása WSN pont-pont összeköttetésekhez: konfiguálható újraküldési korláttal, exponenciális backoff-al, energia-könyveléssel és paraméteres sweep kísérlettel.
+
+**Kontextus:**
+A 7.1–7.6. hetek elkészültek (DES motor, csatorna, energia, MAC, topológia, routing), 141/141 teszt zöld. A wsnsim/models/ csomag kész modelleket tartalmaz. A spec (7.7. hét) ARQ Stop-and-Wait modellt, PDR vs energia sweep kísérletet és PROMPTLOG frissítést írt elő.
+
+**Prompt:**
+Részletes specifikáció alapján: ARQConfig, ARQResult (frozen), ARQLink (Stop-and-Wait, idő-lépéses mód), ARQStats; tesztek 5 osztályban; experiments/arq_sweep.py retry_limit x távolság sweep.
+
+**MI válasz összefoglalója:**
+
+- wsnsim/models/reliability.py — ARQConfig dataclass (retry_limit, ack_timeout_us, backoff_base_us, backoff_factor, ack_size_bytes); ARQResult (frozen=True); ARQLink osztály distance_m paraméterrel, 	ransmit(packet, at_us) → idő-lépéses Stop-and-Wait logika (TX regisztrálás, channel.prr() döntés, ACK energia, exponenciális backoff); ARQStats (add, pdr, mean_attempts, mean_energy_j, total_packets).
+- wsnsim/models/__init__.py — ARQConfig, ARQLink, ARQResult, ARQStats hozzáadva.
+- 	ests/test_reliability.py — 24 unit teszt 5 osztályban: TestARQConfig (2), TestARQLinkSuccess (5), TestARQLinkRetry (4), TestARQLinkDrop (5), TestARQStats (8).
+- experiments/arq_sweep.py — retry_limit ∈ {0,1,2,3,5} × distance_m ∈ {5,10,20,30,40,50}, 200 csomag/kombináció, sigma=3 dB, seed=42; stdout táblázat + 2-panel ábra.
+
+**Döntésem:**
+
+- Elfogadva: 
+retry_limit = újraküldések száma (nem beleértve az első adást), tehát maximális összes kísérlet = 
+retry_limit + 1. Ez a fizikailag legkézenfoghatóbb szemantika, és a sweep retry_limit=0 esetén értelmes (1 kísérlet, nincs újraküldés) PDR görbét ad.
+- Elfogadva: distance_m a konstruktorban — a spec nem definiálta explicit, de a channel.prr() távolság nélkül nem hívható.
+- Elfogadva: ACK adásideje arányos ack_size_bytes / packet.size_bytes * tx_duration_us skálával.
+- Elfogadva: backoff ideje alatt az energia-modell flush() integrál, nem kell külön transition().
+
+**Validálás:**
+
+- [x] pytest tests/ --tb=short → **165/165 teszt zöld** (141 → 165, +24       reliability teszt) ✅
+- [x] reliability.py coverage: **96%** ✅
+- [x] python experiments/arq_sweep.py → táblázat és ábra generálva ✅
+- [x] retry=0, d=5m: PDR=1.000; retry=0, d=40m: PDR=0.000 ✅
+- [x] retry=5, d=20m: PDR=0.935 (látható PDR-javulás retry növeléssel) ✅
+- [x] reports/figures/arq_sweep.png mentve (2 panel: PDR és energia vs távolság) ✅
+- [x] Determinizmus: azonos seed → azonos sweep-eredmény ✅

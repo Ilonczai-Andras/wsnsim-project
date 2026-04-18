@@ -5,6 +5,7 @@ from wsnsim.models.energy import EnergyModel, EnergyState
 from wsnsim.models.mac import ALOHAMac, CSMAMac, Medium, TxResult
 from wsnsim.models.packet import Packet
 from wsnsim.models.routing import FloodRouter, RoutedPacket, SinkTreeRouter
+from wsnsim.models.reliability import ARQConfig, ARQLink, ARQResult, ARQStats
 
 __all__ = [
     "LogDistanceChannel",
@@ -18,4 +19,8 @@ __all__ = [
     "FloodRouter",
     "RoutedPacket",
     "SinkTreeRouter",
+    "ARQConfig",
+    "ARQLink",
+    "ARQResult",
+    "ARQStats",
 ]
