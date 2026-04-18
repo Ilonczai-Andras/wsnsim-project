@@ -7,6 +7,7 @@ from wsnsim.models.packet import Packet
 from wsnsim.models.routing import FloodRouter, RoutedPacket, SinkTreeRouter
 from wsnsim.models.reliability import ARQConfig, ARQLink, ARQResult, ARQStats
 from wsnsim.models.sync_localization import ClockDrift, RSSILocalizer
+from wsnsim.models.aggregation import AggResult, RawForwarder, TreeAggregator
 
 __all__ = [
     "LogDistanceChannel",
@@ -26,4 +27,7 @@ __all__ = [
     "ARQStats",
     "ClockDrift",
     "RSSILocalizer",
+    "AggResult",
+    "RawForwarder",
+    "TreeAggregator",
 ]

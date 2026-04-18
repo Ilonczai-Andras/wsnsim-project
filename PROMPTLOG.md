@@ -477,3 +477,48 @@ retry_limit + 1. Ez a fizikailag legkézenfoghatóbb szemantika, és a sweep ret
   - σ=4 dB → mean_error = **13.8 m**
   - σ=10 dB → mean_error = **75.7 m**
   - eports/figures/localization_error.png generálva
+
+---
+
+### 2026-04-18 — 7.9. hét: Adataggregáció és tömörítés
+
+**Cél:**
+In-network adataggregáció és delta-kódolás implementálása a wsnsim szimulátorba.
+Két stratégia összehasonlítása: nyers adat továbbítás (RawForwarder) és
+fa menti AVG aggregáció delta-kódolással (TreeAggregator).
+
+**Kontextus:**
+A 7.1–7.8. hetek elkészültek (DES motor, csatorna, energia, MAC, topológia,
+routing, megbízhatóság, szinkronizáció/lokalizáció), 187/187 teszt zöld.
+A wsnsim/models/ csomag teljes. A SinkTreeRouter.path_to_sink() és a fa-struktúra
+már elérhető — az aggregáció erre épít.
+
+**Prompt:**
+[Lásd a 7.9. heti implementációs promptot — részletes specifikáció, topológia,
+AggResult dataclass, RawForwarder, TreeAggregator, delta-kódolás, 25 teszt,
+aggregation_comparison.py kísérlet, reports/week09_aggregation.md.]
+
+**MI válasz összefoglalója:**
+Létrehozta a wsnsim/models/aggregation.py fájlt AggResult dataclass-szal,
+RawForwarder és TreeAggregator osztályokkal. A TreeAggregator iteratív
+post-order DFS-t használ (verem alapú), delta-kódolással és perzisztens
+prev_value dict-tel. Frissítette a wsnsim/models/__init__.py exportokat.
+25 unit teszt 6 osztályban, mind zöld (aggregation.py: 99% lefedettség).
+A kísérlet 2-körös megközelítéssel mutatja a delta-kódolás hatását:
+R1 (alap), R2 = R1 + N(0,1.5) — threshold=5.0-nál 100% megtakarítás.
+
+**Döntésem:**
+Az egyszeri sweep nem mutatott variációt (első futásnál prev=None → mindig küld).
+A 2-körös megközelítés (R1 inicializál, R2 mutatja a delta-hatást) jobb demonstráció.
+MSE definíció: (mean(delivered) - mean(ground_truth))^2 — egyszerű, interpretálható,
+mindkét stratégiánál konzisztens. Az iteratív DFS biztonságosabb a rekurzívnál
+nagyobb gráfokon (stack overflow elkerülése).
+
+**Validálás:**
+- [x] pytest tests/ --tb=short → 212/212 teszt zöld (+25 új)
+- [x] test_aggregation.py: 25 teszt, aggregation.py lefedettség 99%
+- [x] python experiments/aggregation_comparison.py → táblázat + ábra generálva
+- [x] reports/figures/aggregation_comparison.png mentve (2 panel)
+- [x] reports/week09_aggregation.md elkészült (tényleges eredményekkel)
+- [x] Reprodukálhatóság: seed=42 → azonos sweep-eredmény
+  - δ=0.0: 24 üzenet, MSE=0.4171; δ=5.0: 0 üzenet, MSE=1.8135
