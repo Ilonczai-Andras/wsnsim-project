@@ -456,3 +456,24 @@ retry_limit + 1. Ez a fizikailag legkézenfoghatóbb szemantika, és a sweep ret
 - [x] retry=5, d=20m: PDR=0.935 (látható PDR-javulás retry növeléssel) ✅
 - [x] reports/figures/arq_sweep.png mentve (2 panel: PDR és energia vs távolság) ✅
 - [x] Determinizmus: azonos seed → azonos sweep-eredmény ✅
+
+### 2026-04-18 — 7.8. hét: Szinkronizáció és lokalizáció
+
+**Cél:** ClockDrift és RSSILocalizer osztályok implementálása, szinkronizációs hibamodell és RSSI-alapú háromszögelés.
+
+**Kontextus:** Meglévő alap: LogDistanceChannel, EnergyModel, ALOHAMac/CSMAMac, FloodRouter/SinkTreeRouter, ARQLink. Előző állapot: 162/162 zöld teszt.
+
+**Prompt:** Implementáld a wsnsim/models/sync_localization.py modult ClockDrift és RSSILocalizer osztályokkal. ClockDrift: drift_ppm, offset_us, local_time(), clock_error_us(), sync_to(). RSSILocalizer: rssi_to_distance() inverz log-távolság képlettel, estimate() linearizált LS háromszögeléssel, localization_error() Monte-Carlo hibamértékkel. 25 teszteset, experiments/localization_error.py kísérlet.
+
+**MI válasz összefoglalója:** Létrehozta a wsnsim/models/sync_localization.py fájlt dataclass-alapú ClockDrift-tel és RSSILocalizer-rel. Frissítette a wsnsim/models/__init__.py exportokat. 25 tesztet generált 5 osztályban. Formulahiba megtalálva az első tesztfutásnál: az inverz log-távolság képletből hiányzott a pl0_db tag — javítva. Kísérlet futtatva, ábra generálva.
+
+**Döntés / tanulság:** Az inverz log-távolság képlet: d = d0 * 10^((tx_power - rssi - pl0_db) / (10*n)). Az eredeti hibás képletből (pl0_db nélkül) d0=1m esetén 108.9m-t adott vissza, és minden reális távolságot 200m-re clampolt, ami véletlenül pontos trilateration-eredményt adott (a teszt-elrendezés geometriai szimmetriája miatt).
+
+**Validálás:**
+- pytest tests/ --tb=short -q → **187/187 zöld** (+25 új teszt, sync_localization.py: 100% lefedettség)
+- python experiments/localization_error.py:
+  - σ=0 dB → mean_error = **0.0000 m**
+  - σ=1 dB → mean_error = **2.76 m**
+  - σ=4 dB → mean_error = **13.8 m**
+  - σ=10 dB → mean_error = **75.7 m**
+  - eports/figures/localization_error.png generálva

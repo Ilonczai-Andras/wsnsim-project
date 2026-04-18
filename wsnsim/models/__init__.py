@@ -6,6 +6,7 @@ from wsnsim.models.mac import ALOHAMac, CSMAMac, Medium, TxResult
 from wsnsim.models.packet import Packet
 from wsnsim.models.routing import FloodRouter, RoutedPacket, SinkTreeRouter
 from wsnsim.models.reliability import ARQConfig, ARQLink, ARQResult, ARQStats
+from wsnsim.models.sync_localization import ClockDrift, RSSILocalizer
 
 __all__ = [
     "LogDistanceChannel",
@@ -23,4 +24,6 @@ __all__ = [
     "ARQLink",
     "ARQResult",
     "ARQStats",
+    "ClockDrift",
+    "RSSILocalizer",
 ]
