@@ -8,6 +8,14 @@ from wsnsim.models.routing import FloodRouter, RoutedPacket, SinkTreeRouter
 from wsnsim.models.reliability import ARQConfig, ARQLink, ARQResult, ARQStats
 from wsnsim.models.sync_localization import ClockDrift, RSSILocalizer
 from wsnsim.models.aggregation import AggResult, RawForwarder, TreeAggregator
+from wsnsim.models.security import (
+    SecurityOverheadConfig,
+    SecurityOverheadModel,
+    ReplayProtection,
+    OVERHEAD_NONE,
+    OVERHEAD_MAC_ONLY,
+    OVERHEAD_MAC_ENCRYPT,
+)
 
 __all__ = [
     "LogDistanceChannel",
@@ -30,4 +38,10 @@ __all__ = [
     "AggResult",
     "RawForwarder",
     "TreeAggregator",
+    "SecurityOverheadConfig",
+    "SecurityOverheadModel",
+    "ReplayProtection",
+    "OVERHEAD_NONE",
+    "OVERHEAD_MAC_ONLY",
+    "OVERHEAD_MAC_ENCRYPT",
 ]
