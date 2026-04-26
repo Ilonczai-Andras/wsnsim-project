@@ -630,3 +630,61 @@ csak akkor megy el csomag, ha a detektor tüzel — egyszerű és jól interpret
   - ZScore thr=3.10: Recall=75.8%, FPR=0%, CommSaved=96.5%
   - EWMA thr=1.79:   Recall=92.3%, FPR=2.1%, CommSaved=93.8%
   - EWMA thr=2.53:   Recall=56.0%, FPR=0.1%, CommSaved=97.4%
+
+---
+
+## 2026-04-26 — 7.12. hét: Federated Learning WSN-ben
+
+**Cél:**
+FedAvg algoritmus szimulálása elosztott szenzorcsomópontokon, a kommunikációs költség
+modellezése FL vs. centralizált tanítás esetén, és az update-periódus hatásának
+kísérlettel való vizsgálata. Nincs sklearn/torch/tensorflow — kizárólag numpy.
+
+**Kontextus:**
+7.1–7.11. hetek elkészültek, 264/264 teszt zöld. A models csomag teljes. A modul önálló
+— nem épít más wsnsim modellekre, csak numpy-t használ. Az architektúra a 7.9–7.11.
+hetek mintáját követi: frozen config + result dataclass, szimulációs osztály run()
+metódussal, analitikus CommCostModel, 25+ teszt kézi ellenőrzéssel.
+
+**Prompt:**
+Azt kértem, hogy a wsnsim/models/fed_learning.py modulban implementáljon egy teljes
+FedAvg szimulációs stacket. FedAvgConfig (frozen dataclass) tárolja az összes
+hiperparamétert (n_nodes, n_features, local_steps, learning_rate, rounds,
+model_size_bytes, sample_size_bytes). NodeDataset a csomópontonkénti adatokat tartja,
+make_node_datasets() szintetikus IID lineáris regressziós adatot generál (közös true_w,
+különböző minták). FedAvgSimulation.run(update_period) szimulál: minden körben lokális
+SGD, majd update_period-onként FedAvg aggregálás (np.average, mintaszám-súlyozással);
+a kommunikáció köveként minden aggregálásnál 2 × model_size_bytes × n_nodes byte kerül
+elszámolásra. FedAvgResult (frozen) tárolja a körönkénti MSE sorozatot, a végső MSE-t
+és a kommunikációs statisztikákat. CommCostModel analitikusan számítja a FL vs.
+centralizált kommunikációt: ceil(rounds / update_period) aggregálásszámmal.
+25 teszt 5 osztályban kézi ellenőrzéssel; kísérlet: update_period sweep 3-panel ábrával.
+
+**MI válasz összefoglalója:**
+Az AI az első nekifutásra hibátlanul implementálta az összes komponenst, mind a 25 teszt
+elsőre zöld lett. Az egyetlen apró döntési pont a 
+un() aggregálás-logikánál volt:
+az (r + 1) % update_period == 0 or (r + 1) == rounds feltétel biztosítja, hogy az
+utolsó kör mindig aggregálással zárul — ez konzisztens a FedAvgResult.final_mse
+szemantikájával. A kísérlet szépen megmutatta a trade-offot: update_period=1-nél a FL
+kommunikáció (128 KB) drágább a centralizált baseline-nál (32 KB), de period=5-től
+már spórol, period=50-nél 92% megtakarítás — a konvergencia romlása árán.
+
+**Döntésem:**
+A FedAvgSimulation minden 
+un() híváskor friss nulla-súlyokból indul — ez reprodukálható
+és teszt-barát. Az aggregálás np.average-gel mintaszám-súlyozással dolgozik (nem egyszerű
+átlag), ami a valódi FedAvg szemantikát követi. A comm_reduction_pct 0-ra clipelt, nem
+negatív — az update_period=1 és 2 esetén a FL drágább mint a centralizált baseline, ezt
+a szimulátornak nem kell elrejtenie, de a teszt is 0–100 tartományt ellenőriz, ami helyes.
+
+**Validálás:**
+- [x] pytest tests/ --tb=short → 289/289 teszt zöld (+25 új)
+- [x] test_fed_learning.py: 25 teszt, fed_learning.py lefedettség 99%
+- [x] python experiments/federated_learning.py → táblázat + ábra generálva
+- [x] reports/figures/federated_learning.png mentve (3 panel: konvergencia + comm sávdiagram + trade-off pontdiagram)
+- [x] Eredmények (seed=42, n_nodes=10, n_samples=200, rounds=50, local_steps=5):
+  - period=1:  final_mse=0.2622, FL=128 000 B, megtakarítás=0%  (FL drágább)
+  - period=5:  final_mse=0.5994, FL= 25 600 B, megtakarítás=20%
+  - period=10: final_mse=1.2106, FL= 12 800 B, megtakarítás=60%
+  - period=50: final_mse=2.4337, FL=  2 560 B, megtakarítás=92%

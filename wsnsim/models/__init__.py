@@ -23,6 +23,14 @@ from wsnsim.models.edge_ai import (
     DetectionResult,
     evaluate,
 )
+from wsnsim.models.fed_learning import (
+    FedAvgConfig,
+    FedAvgResult,
+    FedAvgSimulation,
+    NodeDataset,
+    CommCostModel,
+    make_node_datasets,
+)
 
 __all__ = [
     "LogDistanceChannel",
@@ -56,4 +64,10 @@ __all__ = [
     "EWMADetector",
     "DetectionResult",
     "evaluate",
+    "FedAvgConfig",
+    "FedAvgResult",
+    "FedAvgSimulation",
+    "NodeDataset",
+    "CommCostModel",
+    "make_node_datasets",
 ]
