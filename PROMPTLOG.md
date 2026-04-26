@@ -578,3 +578,55 @@ belevenni, mert az összehasonlítást nem viszi előre, csak zavart okoz.
   - NONE:        0.0000 µJ / csomag,   0 µs latencia
   - MAC_ONLY:    3.2700 µJ / csomag, 100 µs latencia  (+3.27 µJ overhead)
   - MAC_ENCRYPT: 3.8700 µJ / csomag, 300 µs latencia  (+3.87 µJ overhead)
+
+---
+
+## 2026-04-26 — 7.11. hét: Edge AI szenzorhálóban
+
+**Cél:**
+Szimulált szenzorjel-generátor és két egyszerű anomália-detektor implementálása,
+a kommunikáció-spórolás vs. hamis pozitív trade-off mérésével és ábrázolásával.
+Nincs sklearn — kizárólag numpy.
+
+**Kontextus:**
+7.1–7.10. hetek elkészültek, 239/239 teszt zöld. Models csomag teljes (channel, energy,
+mac, packet, routing, reliability, sync_localization, aggregation, security).
+A modul önálló — nem épít más modellekre, csak numpy-t használ.
+
+**Prompt:**
+Azt kértem, hogy a wsnsim/models/edge_ai.py modulban implementáljon egy
+SensorSignalGenerator-t (normál jel + additív spike anomáliák, reprodukálható rng-vel),
+egy ZScoreDetector-t online Welford-módszerű futó átlag/szórással, egy EWMADetector-t
+exponenciálisan súlyozott mozgóátlaggal és online varianciabecslővel, egy frozen
+DetectionResult dataclass-t (TP/FP/TN/FN + precision/recall/f1/fpr/comm_saved_pct),
+és egy evaluate() segédfüggvényt duck typing interfésszel. 25 teszt 5 osztályban,
+köztük kézi Welford-ellenőrzéssel és ismert sorozatú TP/FP/TN/FN validációval.
+Kísérlet: threshold sweep mindkét detektorra, stdout táblázat és 2-panel ábra.
+
+**MI válasz összefoglalója:**
+Az AI elkészítette a teljes modult. A ZScoreDetector Welford online módszert használ —
+ez pontosabb, mint az egyszerű running mean, és nem igényel ablakozást. Az EWMADetector
+online varianciabecslőt kapott az eltéréshez (nem fix std), ami rugalmasabb nemstacionárius
+jelekre. Két tesztnél javítás kellett: a small-deviation tesztnél az EWMA varianciája
+warmup nélkül közel nulla, ezért hamisan tüzelt; a ZScore spike-tesztnél a rövid sorozat
+(10 elem) nem volt elég a Welford-nak stabilizálódni — mindkettőt warmup-periódussal
+oldotta meg. A kísérletben egy off-by-one hiba is előkerült az annotáció-indexelésnél,
+amit szintén javítottunk.
+
+**Döntésem:**
+A Welford-módszer online számítása jobb választás volt a két-pass szórásszámításnál
+(memória-hatékony, streaming-kompatibilis). Az EWMADetector online varianciabecslője
+szintén tudatos döntés: a fix 	hreshold * std helyett adaptív std-et ad, ami
+realisztikusabb WSN-es jelekre. A comm_saved_pct definíciója (TN+FN)/total × 100 —
+csak akkor megy el csomag, ha a detektor tüzel — egyszerű és jól interpretálható.
+
+**Validálás:**
+- [x] pytest tests/ --tb=short → 264/264 teszt zöld (+25 új)
+- [x] test_edge_ai.py: 25 teszt, edge_ai.py lefedettség 98%
+- [x] python experiments/edge_ai_comm_saving.py → táblázat + ábra generálva
+- [x] reports/figures/edge_ai_comm_saving.png mentve (2 panel: comm-saving vs. FPR + Recall vs. comm-saving)
+- [x] Eredmények (seed=42, n=2000, anomaly_prob=0.05, magnitude=6.0):
+  - ZScore thr=2.05: Recall=100%, FPR=0.2%, CommSaved=95.3%
+  - ZScore thr=3.10: Recall=75.8%, FPR=0%, CommSaved=96.5%
+  - EWMA thr=1.79:   Recall=92.3%, FPR=2.1%, CommSaved=93.8%
+  - EWMA thr=2.53:   Recall=56.0%, FPR=0.1%, CommSaved=97.4%

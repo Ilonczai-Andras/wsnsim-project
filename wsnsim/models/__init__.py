@@ -16,6 +16,13 @@ from wsnsim.models.security import (
     OVERHEAD_MAC_ONLY,
     OVERHEAD_MAC_ENCRYPT,
 )
+from wsnsim.models.edge_ai import (
+    SensorSignalGenerator,
+    ZScoreDetector,
+    EWMADetector,
+    DetectionResult,
+    evaluate,
+)
 
 __all__ = [
     "LogDistanceChannel",
@@ -44,4 +51,9 @@ __all__ = [
     "OVERHEAD_NONE",
     "OVERHEAD_MAC_ONLY",
     "OVERHEAD_MAC_ENCRYPT",
+    "SensorSignalGenerator",
+    "ZScoreDetector",
+    "EWMADetector",
+    "DetectionResult",
+    "evaluate",
 ]
