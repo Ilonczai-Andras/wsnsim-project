@@ -52,7 +52,7 @@ A wsnsim egy moduláris diszkrét eseményű szimulátor, amelyben a hálózatot
 •   Biztonsági fenyegetések azonosítása WSN környezetben.
 •   Edge AI és Federated Learning alapok alkalmazása WSN-szcenáriókban.
 •   Pareto-elemzés és design space exploration multi-objektív döntésekhez.
-2.3. Előfeltételek és ajánlott háttértudás
+2.3. Előfeltételek és ajánlott háttértudás
 Ajánlott, hogy magabiztosan menjen:
 
 •   Python alapok (függvények, osztályok, dataclass, typing).
@@ -96,7 +96,7 @@ A projektet Pythonban fejlesztjük. Minimális javaslat:
 •   Git (repo kezelés).
 •   Egy IDE vagy editor (ajánlott: VS Code vagy PyCharm).
 •   Parancssor / terminál.
-4.2. Ajánlott Python csomagok
+4.2. Ajánlott Python csomagok
 A konkrét függőségek a repo „requirements.txt” vagy „pyproject.toml” fájljában legyenek rögzítve.
 Tipikus csomagok:
 
@@ -144,7 +144,7 @@ reports/
 README.md
 PROMPTLOG.md
 requirements.txt (vagy pyproject.toml)
-5. MI-eszközhasználat a gyakorlatban
+5. MI-eszközhasználat a gyakorlatban
 Ebben a tárgyban kifejezetten ösztönzött az MI intenzív használata - a cél azonban nem a „kód
 legeneráltatása”, hanem a mérnöki döntéshozatal gyorsítása: jobb architektúra, gyorsabb prototípus,
 több kísérlet, jobb dokumentáció és ellenőrizhető (reprodukálható) eredmények.
@@ -191,7 +191,7 @@ A promptlog minimum tartalma minden jelentős MI-interakciónál:
 •   Kontextus (melyik modul / fájl / commit környéke).
 •   A prompt (lényegében, tömören - nem kell több oldalnyi chat log).
 •   A kapott javaslat lényege (bullet pontokban).
-•   A te döntésed: mit fogadtál el, mit dobtál el, mit módosítottál, és miért.
+•   A te döntésed: mit fogadtál el, mit dobtál el, mit módosítottál, és miért.
 •   Validálás: milyen teszttel/ábrával ellenőrizted.
 
 Javasolt fájl: PROMPTLOG.md a repo gyökerében.
@@ -235,7 +235,7 @@ A DES motor minimális komponensei:
 •   EventQueue: priority queue (heap), amely idő szerint rendez.
 •   Scheduler: API az események beszúrására/cancel-elésére.
 •   Logger/Trace: időbélyeges eseménynapló a debughoz és validáláshoz.
-6.2. Modulok és felelősségek
+6.2. Modulok és felelősségek
 A cél, hogy minden réteg külön modul legyen. Javasolt minimális modul-lista (a félév során építjük fel):
 
 Modul                 Felelősség (mit csinál?)
@@ -275,7 +275,7 @@ gyakorlatához lásd Sandve et al. „Ten Simple Rules...” [27].
 •   Konfiguráció mentése (JSON/YAML) a futás kimenetébe.
 •   Eredményfájlok (CSV) + generált ábrák (PNG/PDF) mentése.
 •   A README-ben 1 parancs legyen, amivel újra futtatható a fő kísérlet.
-7. Heti feladatok és ütemterv (1-14. hét)
+7. Heti feladatok és ütemterv (1-14. hét)
 A félév 14 tematikus hétből áll. Minden héten ugyanazt a ritmust követjük:
 
 •   15 perc: gyors feladat (papír / táblázat / gondolkodási warm-up) - cél a fogalmi tisztázás.
@@ -321,7 +321,7 @@ Heti feladatblokk (15 + 60 + 15 perc)
 
 MI fókusz (vibe coding irányítottan)
 LLM-mel architektúra tervezés; generált egységtesztek futtatása
-Ajánlott prompt ötletek (másold be és töltsd ki kontextussal):
+Ajánlott prompt ötletek (másold be és töltsd ki kontextussal):
 
 •   Tervezd meg a wsnsim minimális architektúráját modulokra bontva (sim, models, scenarios, metrics).
     Adj 5-10 függvény-szignatúrát.
@@ -367,7 +367,7 @@ Kulcsfogalmak (gyorstalpaló):
 Tétel / kérdéskörök (ellenőrzőlista):
 
 •   Terjedési modellek (log-distance, shadowing)
-•   Link budget alapok
+•   Link budget alapok
 •   Csomaghibamodellek: BER→PER→PRR
 •   Interferencia és kollízió fogalma
 
@@ -414,7 +414,7 @@ Hivatkozások ehhez a héthez: [16][2][12]
 Célok
 • Energiafogyasztás komponenseinek modellezése (MCU, rádió TX/RX/IDLE/SLEEP).
 • Duty-cycling és üzemidő számítás alapok.
-•   Energia-büdzsé: egy node élettartamának becslése különböző duty cycle mellett.
+•   Energia-büdzsé: egy node élettartamának becslése különböző duty cycle mellett.
 
 Elméleti minimum (amit értened kell)
 Kulcsfogalmak (gyorstalpaló):
@@ -461,7 +461,7 @@ Heti leadandó / DoD
 • energy modul: állapotgép + fogyasztás integrálása idő szerint.
 • Egy mini-kísérlet: duty cycle vs becsült üzemidő (grafikon).
 • Sanity check: 'negatív energia' guard + teszt.
-Ajánlott olvasás
+Ajánlott olvasás
 • Heinzelman et al. (LEACH) - klasszikus rádiós energia modell (Tx/Rx energia) [17]
 • Sohraby et al. - energiahatékonyság és WSN constraint-ek [1]
 
@@ -508,7 +508,7 @@ MI fókusz (vibe coding irányítottan)
 LLM MAC kód review: race condition figyelés; tesztesetek ütközésre
 
 Ajánlott prompt ötletek (másold be és töltsd ki kontextussal):
-•   Írj ALOHA MAC modult (send at will) és CSMA backoff-ot (carrier sense + random backoff). Adj
+•   Írj ALOHA MAC modult (send at will) és CSMA backoff-ot (carrier sense + random backoff). Adj
     paramétereket (slot, cwmin, cwmax).
 •   Készíts determinisztikus teszt-szcenáriót két node-al: egyszerre küldés → ütközés. Mi az elvárt
     viselkedés ALOHA vs CSMA esetén?
@@ -554,7 +554,7 @@ Tétel / kérdéskörök (ellenőrzőlista):
 •   Topológia típusok: random, grid, cluster
 •   Összefüggőség és redundancia
 •   Sink elhelyezés hatása
-•   Mobilitás alapok
+•   Mobilitás alapok
 
 Szimulátor modul fókusz
 Topológia generátor: random/grid/cluster; NetworkX vizualizáció
@@ -601,7 +601,7 @@ Célok
 
 Elméleti minimum (amit értened kell)
 Kulcsfogalmak (gyorstalpaló):
-•   Flooding
+•   Flooding
 •   shortest-path
 •   fa-alapú gyűjtés
 •   LEACH
@@ -647,7 +647,7 @@ Heti leadandó / DoD
 Ajánlott olvasás
 • IETF RPL (LLN routing) - koncepcionális referencia [5]
 • LEACH - clustering alapú adatgyűjtés [17]
-Hivatkozások ehhez a héthez: [5][17]
+Hivatkozások ehhez a héthez: [5][17]
 
 
 
@@ -694,7 +694,7 @@ Ajánlott prompt ötletek (másold be és töltsd ki kontextussal):
     ütemezzek (timeout)?
 •   Tervezd meg a paraméter sweep-et retry_limit és backoff tartományokra. Milyen grafikonokat
     rajzoljak?
-•   Készíts narratívát: hogyan magyarázzam el a PDR vs energy trade-offot?
+•   Készíts narratívát: hogyan magyarázzam el a PDR vs energy trade-offot?
 
 Tipikus hibák és gyors ellenőrzések
 • Timeout túl kicsi/nagy: irreális viselkedés.
@@ -738,7 +738,7 @@ Tétel / kérdéskörök (ellenőrzőlista):
 
 Szimulátor modul fókusz
 Óra-drift modell; RSSI trilateráció szimulált anchor-okkal
-Heti feladatblokk (15 + 60 + 15 perc)
+Heti feladatblokk (15 + 60 + 15 perc)
 15 perc - warm-up: Trilateráció papíron: 3 anchor, 1 ismeretlen
 
 60 perc - vibe coding sprint: Drift modell + trilateráció implementálás MI-vel
@@ -785,7 +785,7 @@ Kulcsfogalmak (gyorstalpaló):
 
 •   In-network processing
 •   aggregációs függvények
-•   delta-kódolás
+•   delta-kódolás
 •   edge vs cloud
 
 Tétel / kérdéskörök (ellenőrzőlista):
@@ -830,7 +830,7 @@ Ajánlott olvasás
 • Dargie & Poellabauer - data-centric megközelítések [2]
 
 Hivatkozások ehhez a héthez: [1][2]
-7.10. hét: Biztonság WSN-ben
+7.10. hét: Biztonság WSN-ben
 
 Célok
 • WSN threat model és tipikus támadások (replay, jamming, sinkhole, Sybil, stb.).
@@ -877,7 +877,7 @@ Tipikus hibák és gyors ellenőrzések
     library.
 • A támadás modellje nincs definiálva (mit csinál az attacker a szimulátorban?).
 • Nincs negatív teszt: védelem nélkül mennyire rossz?
-Heti leadandó / DoD
+Heti leadandó / DoD
 • security modul: replay védelem (seq/nonce) + overhead model.
 • Abuse-case teszt (replay) + mérés (energia overhead).
 
@@ -923,7 +923,7 @@ Heti feladatblokk (15 + 60 + 15 perc)
 60 perc - vibe coding sprint: Szenzorjel generátor + detektor MI-vel
 
 15 perc - review & teszt: Kommunikáció spórolás vs false positive trade-off
-MI fókusz (vibe coding irányítottan)
+MI fókusz (vibe coding irányítottan)
 LLM feature ötletek; seed és hiperparaméter logolás
 
 Ajánlott prompt ötletek (másold be és töltsd ki kontextussal):
@@ -969,7 +969,7 @@ Kulcsfogalmak (gyorstalpaló):
 Tétel / kérdéskörök (ellenőrzőlista):
 
 •   Federated learning intuíció
-•   Kommunikációs költség FL-ben
+•   Kommunikációs költség FL-ben
 •   Model update tömörítés
 •   Privacy alapok
 
@@ -1015,7 +1015,7 @@ Célok
 • Design space exploration: paraméter-söprés automatizálása.
 • Multi-objektív optimalizálás és Pareto-front kiválasztás.
 • Érzékenységvizsgálat: mely paraméterek számítanak legjobban?
-Elméleti minimum (amit értened kell)
+Elméleti minimum (amit értened kell)
 Kulcsfogalmak (gyorstalpaló):
 
 •   Design space exploration
@@ -1062,7 +1062,7 @@ Heti leadandó / DoD
 Ajánlott olvasás
 • Pareto front fogalma - multi-objektív optimalizálás [30]
 • Sandve et al. - reprodukálhatóság elvek [27]
-Hivatkozások ehhez a héthez: [30][27]
+Hivatkozások ehhez a héthez: [30][27]
 
 
 
@@ -1108,7 +1108,7 @@ Ajánlott prompt ötletek (másold be és töltsd ki kontextussal):
     tanulságok.
 •   Kérj 'kritikus kérdéseket' a védéshez: hol támadható az eredmény, mit kérdezhet egy reviewer?
 •   Generálj executive summary-t a README elejére (10-12 sor).
-Tipikus hibák és gyors ellenőrzések
+Tipikus hibák és gyors ellenőrzések
 • Nincs egyetlen „fő futtatási parancs”, amit a javító futtathat.
 • A repo nincs letisztázva (félkész notebookok, óriás output fájlok).
 • A prezentáció nem evidence-based (nincs grafikon, nincs szám).
@@ -1123,7 +1123,7 @@ Ajánlott olvasás
 • 3GPP - NB-IoT standardizációs háttér (kitekintés) [32]
 
 Hivatkozások ehhez a héthez: [8][9][32]
-8. Mérföldkövek (M1-M4) és elfogadási kritériumok
+8. Mérföldkövek (M1-M4) és elfogadási kritériumok
 A mérföldkövek célja, hogy ne a félév végén derüljön ki, hogy hiányzik egy alapmodul. Minden
 mérföldkőnél a minimális artefaktokat és az elfogadási kritériumot is megadjuk.
 
@@ -1168,7 +1168,7 @@ Minimum elvárás:
 •   Egy jól definiált fenyegetési modell és legalább 1 abuse-case teszt (replay vagy DoS jelleg).
 •   VAGY: egy egyszerű edge detektor és a trade-off mérése (comm vs FP/FN).
 •   Legalább 1 ábra + rövid interpretáció.
-•   PROMPTLOG.md frissítve.
+•   PROMPTLOG.md frissítve.
 
 8.4. M4 - Projekt végleges (leadás: 14. hét)
 Minimum elvárás:
@@ -1216,7 +1216,7 @@ python experiments/run_main.py --config configs/main.json
 
 9.2. PROMPTLOG.md - sablon
 Ajánlott formátum (másold be és töltsd ki):
-# PROMPTLOG
+# PROMPTLOG
 
 ## 2026-03-xx - Week 4 - MAC/CSMA backoff
 
@@ -1268,12 +1268,12 @@ A félév során több héten kérünk mini riportot. Legyen rövid (1-2 oldal),
 
 9.4. Ábra-minőség és minimum standard
 Minden ábrára vonatkozó minimum:
-•   Cím vagy caption: mit ábrázol az ábra? milyen szcenárióban?
+•   Cím vagy caption: mit ábrázol az ábra? milyen szcenárióban?
 •   X/Y tengely felirat és mértékegység.
 •   Jelmagyarázat, ha több görbe van.
 •   A seed és a fő paraméterek legyenek a captionben vagy a riportban.
 •   Ne legyen túlzsúfolt: inkább 2 ábra, mint 1 olvashatatlan.
-10. Leadás és értékelés
+10. Leadás és értékelés
 
 10.1. Beadási forma
 A beadás alapja egy Git repository. A javítás és peer review akkor hatékony, ha a repo rendezett és
@@ -1320,7 +1320,7 @@ Jeleshez (5):
 Elégségeshez (2):
 
 •   Működő szimulátor legalább 4 modullal (eseménykezelő, csatorna, energia, MAC vagy routing)
-•   Futtatható kód Git repositoryban
+•   Futtatható kód Git repositoryban
 •   Alapszintű dokumentáció (README, rövid riport)
 •   Promptlog beadva
 
@@ -1367,10 +1367,10 @@ Az összpontszám alapján az érdemjegy:
 Pontszám                   Érdemjegy
 0-49%                      elégtelen (1)
 50-62%                     elégséges (2)
-63-74%    közepes (3)
+63-74%    közepes (3)
 75-86%    jó (4)
 87-100%   jeles (5)
-11. Források és hivatkozások
+11. Források és hivatkozások
 A hivatkozások számozása a szövegben használt [n] jelölésnek felel meg.
 
 [1] K. Sohraby, D. Minoli, T. Znati: Wireless Sensor Networks: Technology, Protocols, and Applications.
@@ -1417,7 +1417,7 @@ https://www.eng.hawaii.edu/Tutor/NET/ALOHA-1.pdf
 [15] L. Kleinrock, F. A. Tobagi: Packet Switching in Radio Channels: Part II - The Hidden Terminal Problem
 in Carrier Sense Multiple-Access and the Busy Tone Solution. IEEE Trans. Communications, 1975. PDF
 mirror: https://www.networksorcery.com/enp/reference/MCAMIT/tobagi2.pdf
-[16] S. Y. Seidel, T. S. Rappaport: 914 MHz Path Loss Prediction Models for Indoor Wireless
+[16] S. Y. Seidel, T. S. Rappaport: 914 MHz Path Loss Prediction Models for Indoor Wireless
 Communications in Multifloored Buildings. IEEE Trans. Antennas and Propagation, 1992.
 
 [17] W. R. Heinzelman, A. Chandrakasan, H. Balakrishnan: Energy-Efficient Communication Protocol for
@@ -1462,4 +1462,3 @@ https://www.nxp.com/docs/en/application-note/JN-AN-1035.pdf
 
 [32] 3GPP News: Standardization of NB-IOT completed (Jun 2016): https://www.3gpp.org/news-
 events/3gpp-news/nb-iot-complete
-

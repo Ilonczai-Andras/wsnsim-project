@@ -1,7 +1,11 @@
 # wsnsim — Wireless Sensor Network Simulator
 
-Python-alapú, eseményvezérelt szimulátor vezeték nélküli szenzorhálózatok modellezésére.  
-Kutatási és oktatási célra tervezve: energiamodellezés, routing-protokollok és hálózati teljesítménymutatók vizsgálatára.
+## Executive Summary
+A **wsnsim** egy Python-alapú, diszkrét eseményvezérelt (DES) szimulátor, amely vezeték nélküli szenzorhálózatok (WSN) kutatási és oktatási modellezésére készült. A projekt átfogóan támogatja a teljes hálózati stacket és a szenzorcsomóponti feladatokat: 
+- **Fizikai és MAC réteg:** Log-distance csatorna árnyékolással, energiaállapot-gép (IDLE/TX/RX/SLEEP), ALOHA és CSMA/BEB protokollok.
+- **Hálózat és Megbízhatóság:** Statikus Sink-fa és árasztásos útválasztás, integrált Stop-and-Wait ARQ mechanizmus a garantált adatátvitelért.
+- **Adatkezelés:** In-network adataggregáció (delta-kódolás), Edge AI alapú anomália-detekció (Z-Score, EWMA) és elosztott gépi tanulás (Federated Learning FedAvg-al).
+Célja egy tiszta, reprodukálható (seedelt) platform biztosítása, amely egy dedikált optimalizációs modullal lehetővé teszi a hálózati tervezési tér (design space) feltérképezését és a Pareto-optimális architektúrák kiválasztását.
 
 ---
 
@@ -25,35 +29,22 @@ pip install -r requirements.txt
 pip install -e .
 ```
 
-### 2. Tesztek futtatása
+### 2. Tesztelés
+
+A projekt kiterjedt unit teszthálózattal rendelkezik (több mint 300 teszt), amely biztosítja a modellek stabilitását. A tesztek a `pytest` framework segítségével futtathatók, a teljes tesztcsomag így indítható:
 
 ```bash
-pytest
+pytest tests/ -v
 ```
 
-### 3. Első szimuláció futtatása
+### 3. Végső Esettanulmány (Projekt Bemutató)
+
+A projekt fő futtatási parancsa a végső esettanulmány (Smart Agriculture szcenárió), amely bemutatja a wsnsim moduláris képességeit, a MAC és ARQ rétegek optimalizálását egy 50 csomópontos topológiában:
 
 ```bash
-python experiments/hello_sim.py
+python experiments/case_study.py
 ```
-
-Vagy közvetlenül Pythonból:
-
-```python
-import numpy as np
-from wsnsim.sim import SimClock, Scheduler
-from wsnsim.metrics import StatsCollector
-
-clock = SimClock()
-stats = StatsCollector(clock)
-sched = Scheduler(clock, rng=np.random.default_rng(42))
-
-sched.schedule(100.0, lambda e: stats.record("tx", value=32.0), payload="ping")
-sched.schedule(200.0, lambda e: stats.record("rx", value=32.0), payload="pong")
-sched.run()
-
-print(stats.table_str())
-```
+Ez a parancs generál egy összegző riportot a konzolra, feltérképezi a Pareto-frontot, és elmenti a kapcsolódó ábrát a `reports/figures/case_study_pareto.png` útvonalra. További specifikus szimulációkat (pl. Federated Learning, Edge AI) az `experiments/` mappa alatt találsz.
 
 ---
 
