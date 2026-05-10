@@ -688,3 +688,27 @@ a szimulátornak nem kell elrejtenie, de a teszt is 0–100 tartományt ellenőr
   - period=5:  final_mse=0.5994, FL= 25 600 B, megtakarítás=20%
   - period=10: final_mse=1.2106, FL= 12 800 B, megtakarítás=60%
   - period=50: final_mse=2.4337, FL=  2 560 B, megtakarítás=92%
+
+---
+
+## 2026-05-10 — 7.13. hét: Tervezési tér és optimalizálás (Design Space Exploration)
+
+**Cél:**
+Design space exploration (paraméter-söprés) implementálása WSN paramétereken, Pareto-front alapú multi-objektív optimalizálás (PDR max, Energia min) és reprodukálhatóság biztosítása. Nincs külső optimalizációs könyvtár.
+
+**Kontextus:**
+A korábbi hetek moduljai elkészültek (289/289 teszt zöld). A cél a wsnsim paramétereinek kombinatorikus kiértékelése és a legjobb (nem-dominált) konfigurációk kiválogatása volt. A végső feladatban a korábban JSON kimenetet elvetettük, és csak a Pareto-front ábra készült el.
+
+**Prompt:**
+A wsnsim/models/optimization.py modulban `ParameterGrid` (iterátor paraméter-kombinációkra), `ParetoFilter` (nem-dominált megoldások szűrése max/min irányokkal) és `ConfigDumper` (eredmények JSON-ba mentése) implementálását kértem. 20-25 unit tesztet kértem a tests/test_optimization.py-be, külön fókusszal a Pareto-dominancia edge-case-eire (egyenlőség, szigorú dominancia, tradeoff). Az experiments/design_space.py-ben kértem egy kísérletet az ARQ `retry_limit`, `distance_m` és `backoff_base_us` paraméterek sweepelésére, a PDR (max) és Energiafogyasztás (min) Pareto-frontjának meghatározására, és az eredmények mentésére json/ábra formájában. Az MI egy Reproducibility Checklist-et is adott. Egy későbbi promptban a JSON mentést el kellett távolítani az experiment fájlból, így csak az ábra maradt.
+
+**MI válasz összefoglalója:**
+Az AI az `optimization.py` modulban itertools.product alapú grid generátort, O(N^2) komplexitású Pareto szűrőt, és egy egyszerű JSON dumper-t készített. A 22 unit teszt minden ágat (100% lefedettség) lefedett (Tradeoff, egyező objektívák, negatív értékek). A sweep 60 kombinációt értékelt ki reprodukálható (fix seed) formában, N=50 csomaggal. A kísérlet kiválasztott 4 Pareto-optimális pontot és elkészítette a `reports/figures/design_space.png` scatter plot-ot a Pareto-front kiemelésével. A kérést követően a script módosítva lett, így nem ment felesleges adatokat a `reports/data` könyvtárba, valamint az említett könyvtárat is törölte.
+
+**Döntésem:**
+A `ParetoFilter` O(N^2) naiv implementációja tökéletesen megfelel a design space exploration méretének (60-1000 elem), nincs szükség scipy/optuna használatára vagy k-d fákra. A Pareto dominancia szigorú: legalább egy objektívában jobb, a többiben nem rosszabb - ezt a tesztek validálják. A `ConfigDumper` megmaradt az `optimization.py`-ban általános eszközként, bár ebből a konkrét kísérletből a JSON mentés végül kikerült.
+
+**Validálás:**
+- [x] pytest tests/test_optimization.py -v → 22/22 teszt zöld (100% coverage az optimization.py-re)
+- [x] python experiments/design_space.py → 60 iteráció lefutott, 4 Pareto pont
+- [x] reports/figures/design_space.png generálva (szürke pontok + piros Pareto-vonal)
